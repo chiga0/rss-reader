@@ -5,15 +5,26 @@ import { FeedList } from '@components/FeedList/FeedList';
 import { ArticleList } from '@components/ArticleList/ArticleList';
 import { ArticleView } from '@components/ArticleView/ArticleView';
 import { logger } from '@lib/logger';
+import { storage } from '@lib/storage';
 
 export default function App() {
   const { resolvedTheme } = useTheme();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [dbInitialized, setDbInitialized] = useState(false);
   const { selectedFeedId, selectedArticleId, loadFeeds } = useStore();
 
-  // Load feeds on mount
+  // Initialize storage and load feeds on mount
   useEffect(() => {
-    loadFeeds();
+    const initializeApp = async () => {
+      try {
+        await storage.init();
+        setDbInitialized(true);
+        await loadFeeds();
+      } catch (error) {
+        logger.error('Failed to initialize app', error instanceof Error ? error : undefined);
+      }
+    };
+    initializeApp();
   }, [loadFeeds]);
 
   // Monitor online/offline status
@@ -35,6 +46,22 @@ export default function App() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Show loading screen while initializing
+  if (!dbInitialized) {
+    return (
+      <div
+        className={`flex h-screen items-center justify-center ${
+          resolvedTheme === 'dark' ? 'bg-dark-950 text-white' : 'bg-white text-dark-900'
+        }`}
+      >
+        <div className="text-center">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
+          <p className="text-gray-600 dark:text-gray-400">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
