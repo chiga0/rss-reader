@@ -10,6 +10,11 @@ import { storage } from '@lib/storage';
 import type { Feed, Article } from '@models/Feed';
 import { v4 as uuidv4 } from 'uuid';
 
+// CORS proxy for development (bypasses browser CORS restrictions)
+// Production should use server-side proxy or Service Worker
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+const USE_CORS_PROXY = import.meta.env.DEV; // Only in development
+
 /**
  * Fetch RSS feed from URL with proper headers
  */
@@ -17,7 +22,10 @@ export async function fetchFeedXML(url: string): Promise<{ xml: string; contentT
   logger.info('Fetching feed XML', { url });
 
   try {
-    const response = await fetch(url, {
+    // Use CORS proxy in development to bypass browser restrictions
+    const fetchUrl = USE_CORS_PROXY ? `${CORS_PROXY}${encodeURIComponent(url)}` : url;
+    
+    const response = await fetch(fetchUrl, {
       headers: {
         'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
         'User-Agent': 'RSS-Reader-PWA/1.0',
@@ -39,7 +47,7 @@ export async function fetchFeedXML(url: string): Promise<{ xml: string; contentT
 
     return { xml, contentType };
   } catch (error) {
-    logger.error('Failed to fetch feed', { url, error });
+    logger.error('Failed to fetch feed', error instanceof Error ? error : undefined, { url });
     throw error;
   }
 }
@@ -111,7 +119,7 @@ export async function subscribeFeed(
 
   return { success: true, feed, articles };
   } catch (error) {
-    logger.error('Failed to subscribe to feed', { url, error });
+    logger.error('Failed to subscribe to feed', error instanceof Error ? error : undefined, { url });
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to subscribe to feed',

@@ -97,7 +97,9 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
     const contentEncoded = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0];
     const content = contentEncoded?.textContent || description;
     
-    const author = getTextContent(item, 'author') || getTextContent(item, 'dc:creator') || undefined;
+    // Handle Dublin Core creator (common extension for author)
+    const dcCreator = item.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')[0];
+    const author = getTextContent(item, 'author') || dcCreator?.textContent?.trim() || undefined;
     const pubDateStr = getTextContent(item, 'pubDate');
     const publishedAt = pubDateStr ? new Date(pubDateStr) : new Date();
 
