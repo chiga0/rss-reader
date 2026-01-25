@@ -1,27 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '@hooks/useStore';
+import { useTheme } from '@hooks/useTheme';
 import FeedList from '@pages/FeedList';
 import ArticleDetail from '@pages/ArticleDetail';
 import { logger } from '@lib/logger';
 
 export default function App() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { resolvedTheme } = useTheme();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const selectedFeedId = useAppStore((state: any) => state.selectedFeedId);
-
-  // Detect system theme preference
-  useEffect(() => {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setTheme(prefersDark ? 'dark' : 'light');
-
-    // Listen for theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      setTheme(e.matches ? 'dark' : 'light');
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -45,8 +32,8 @@ export default function App() {
 
   return (
     <div
-      className={`min-h-screen transition-colors duration-300 ${
-        theme === 'dark' ? 'bg-dark-950 text-white' : 'bg-white text-dark-900'
+      className={`min-h-screen transition-colors duration-200 ${
+        resolvedTheme === 'dark' ? 'bg-dark-950 text-white' : 'bg-white text-dark-900'
       }`}
     >
       {/* Status bar */}

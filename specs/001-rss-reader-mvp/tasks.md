@@ -92,9 +92,9 @@
 
 ### Theme Management
 
-- [ ] T038 [P] Create theme hook in src/hooks/useTheme.ts
-- [ ] T039 Update App.tsx to use useTheme hook and apply dark class
-- [ ] T040 [P] Add CSS variables for light/dark themes in src/styles/globals.css
+- [x] T038 [P] Create theme hook in src/hooks/useTheme.ts
+- [x] T039 Update App.tsx to use useTheme hook and apply dark class
+- [x] T040 [P] Add CSS variables for light/dark themes in src/styles/globals.css
 
 ### Testing Infrastructure
 
