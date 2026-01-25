@@ -3,13 +3,16 @@
  * Grid layout displaying all RSS feeds
  */
 
+import { useState } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { FeedCard } from './FeedCard';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 import { AddFeedDialog } from '../AddFeedDialog/AddFeedDialog';
+import { syncService } from '@services/syncService';
 
 export function FeedList() {
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     feeds,
     articles,
@@ -32,22 +35,54 @@ export function FeedList() {
     selectFeed(feedId);
   };
 
+  // Handle manual refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await syncService.refreshAllFeeds();
+    } catch (error) {
+      setError('刷新失败,请重试');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
           My Feeds
         </h1>
-        <button
-          onClick={openAddFeedDialog}
-          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90 transition-colors"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Feed
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            title="刷新所有订阅源"
+          >
+            <svg 
+              className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span className="hidden sm:inline">
+              {isRefreshing ? '刷新中...' : '刷新'}
+            </span>
+          </button>
+          <button
+            onClick={openAddFeedDialog}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90 transition-colors"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="hidden sm:inline">Add Feed</span>
+          </button>
+        </div>
       </div>
 
       {/* Error Message */}

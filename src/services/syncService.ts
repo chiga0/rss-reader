@@ -5,6 +5,7 @@
 
 import { logger } from '@lib/logger';
 import { storage } from '@lib/storage';
+import { fetchAndStoreArticles } from './feedService';
 import type { SyncState, QueuedOperation } from '@models/Feed';
 
 class SyncService {
@@ -90,9 +91,8 @@ class SyncService {
    */
   private async refreshFeed(feedId: string): Promise<void> {
     try {
-      // Note: fetchAndStoreArticles will be imported from feedService
       logger.debug('Refreshing feed', { feedId });
-      // await fetchAndStoreArticles(feedId);
+      await fetchAndStoreArticles(feedId);
     } catch (error) {
       logger.warn('Failed to refresh feed', { feedId, error });
     }
