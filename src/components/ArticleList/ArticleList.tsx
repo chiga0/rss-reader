@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 
 export function ArticleList() {
-  const { articles, selectedFeedId, feeds, isLoading, error, selectArticle, setError } = useStore();
+  const { articles, selectedFeedId, feeds, isLoading, error, selectArticle, selectFeed, setError } = useStore();
 
   // Get selected feed
   const selectedFeed = feeds.find((f) => f.id === selectedFeedId);
@@ -26,12 +26,27 @@ export function ArticleList() {
     selectArticle(articleId);
   };
 
+  // Handle back to feed list
+  const handleBack = () => {
+    selectFeed(null);
+  };
+
   return (
     <div className="flex h-full flex-col">
-      {/* Header */}
+      {/* Header with Back Button */}
       {selectedFeed && (
         <div className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <button
+              onClick={handleBack}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors tablet:hidden"
+              title="返回订阅源列表"
+            >
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
             {selectedFeed.imageUrl && (
               <img
                 src={selectedFeed.imageUrl}

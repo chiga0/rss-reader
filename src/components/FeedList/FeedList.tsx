@@ -9,9 +9,13 @@ import { FeedCard } from './FeedCard';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 import { AddFeedDialog } from '../AddFeedDialog/AddFeedDialog';
+import { CategorySidebar } from '../CategoryList/CategorySidebar';
+import { CreateCategoryDialog } from '../CategoryList/CreateCategoryDialog';
 
 export function FeedList() {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
   const {
     feeds,
     articles,
@@ -52,8 +56,25 @@ export function FeedList() {
 
   const isSyncing = syncState?.isSyncing || isRefreshing;
 
+  // Filter feeds by selected category
+  const filteredFeeds = selectedCategory === null
+    ? feeds.filter(f => !f.deletedAt)
+    : selectedCategory === 'uncategorized'
+    ? feeds.filter(f => !f.categoryId && !f.deletedAt)
+    : feeds.filter(f => f.categoryId === selectedCategory && !f.deletedAt);
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="flex h-full">
+      {/* Category Sidebar */}
+      <CategorySidebar
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+        onCreateCategory={() => setIsCreateCategoryOpen(true)}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8 flex items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
@@ -132,9 +153,9 @@ export function FeedList() {
       )}
 
       {/* Feed Grid */}
-      {!isLoading && feeds.length > 0 && (
+      {!isLoading && filteredFeeds.length > 0 && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {feeds.map((feed) => (
+          {filteredFeeds.map((feed) => (
             <FeedCard
               key={feed.id}
               feed={feed}
@@ -150,6 +171,14 @@ export function FeedList() {
         isOpen={isAddFeedDialogOpen}
         onClose={closeAddFeedDialog}
       />
+
+      {/* Create Category Dialog */}
+      <CreateCategoryDialog
+        isOpen={isCreateCategoryOpen}
+        onClose={() => setIsCreateCategoryOpen(false)}
+      />
+        </div>
+      </div>
     </div>
   );
 }

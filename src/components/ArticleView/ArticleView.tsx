@@ -8,10 +8,15 @@ import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 
 export function ArticleView() {
-  const { articles, selectedArticleId, isLoading, error, setError } = useStore();
+  const { articles, selectedArticleId, isLoading, error, setError, toggleArticleFavorite, selectArticle } = useStore();
 
   // Get selected article
   const article = articles.find((a) => a.id === selectedArticleId);
+
+  // Handle back to article list
+  const handleBack = () => {
+    selectArticle(null);
+  };
 
   if (isLoading) {
     return <LoadingSpinner message="Loading article..." />;
@@ -63,11 +68,38 @@ export function ArticleView() {
         </div>
       )}
 
+      {/* Back Button for Mobile */}
+      <button
+        onClick={handleBack}
+        className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 tablet:hidden"
+      >
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        <span>返回文章列表</span>
+      </button>
+
       {/* Article Header */}
       <header className="mb-8">
-        <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
-          {article.title}
-        </h1>
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h1 className="text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100 sm:text-4xl flex-1">
+            {article.title}
+          </h1>
+          <button
+            onClick={() => toggleArticleFavorite(article.id)}
+            className="shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            title={article.isFavorite ? '取消收藏' : '收藏文章'}
+          >
+            <svg 
+              className={`h-6 w-6 ${article.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
+              fill={article.isFavorite ? 'currentColor' : 'none'}
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
+        </div>
 
         {/* Article Meta */}
         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-gray-400">

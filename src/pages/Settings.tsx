@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RefreshIntervalSelector } from '@components/Settings/RefreshIntervalSelector';
-import { ThemeSelector } from '@components/Settings/ThemeSelector';
+import { OPMLExportButton } from '@components/Settings/OPMLExportButton';
+import { OPMLImportDialog } from '@components/Settings/OPMLImportDialog';
 import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
@@ -125,7 +126,7 @@ export default function Settings() {
           </div>
 
           {/* Notification Settings Section */}
-          <div className="p-6">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
               通知
             </h2>
@@ -144,6 +145,35 @@ export default function Settings() {
             <p className="ml-6 text-sm text-gray-500 dark:text-gray-400 mt-1">
               当订阅源有新文章时发送通知
             </p>
+          </div>
+
+          {/* OPML Import/Export Section */}
+          <div className="p-6">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              导入/导出
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  导出订阅源
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  将您的订阅源导出为 OPML 文件，以便备份或迁移到其他阅读器
+                </p>
+                <OPMLExportButton />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  导入订阅源
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  从 OPML 文件导入订阅源。支持从其他 RSS 阅读器导出的文件
+                </p>
+                <OPMLImportDialog />
+              </div>
+            </div>
           </div>
         </div>
 

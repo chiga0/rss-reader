@@ -7,16 +7,21 @@ import { ArticleList } from '@components/ArticleList/ArticleList';
 import { ArticleView } from '@components/ArticleView/ArticleView';
 import { OfflineIndicator } from '@components/Common/OfflineIndicator';
 import Settings from '@pages/Settings';
+import { FavoritesPage } from '@pages/Favorites';
+import { HistoryPage } from '@pages/History';
 import { logger } from '@lib/logger';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
+import { cacheService } from '@services/cacheService';
+
+type Page = 'feeds' | 'favorites' | 'history' | 'settings';
 
 export default function App() {
   const { resolvedTheme } = useTheme();
   const { isOnline } = useOfflineDetection();
   const [dbInitialized, setDbInitialized] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'reader' | 'settings'>('reader');
-  const { selectedFeedId, selectedArticleId, loadFeeds } = useStore();
+  const [currentPage, setCurrentPage] = useState<Page>('feeds');
+  const { selectedFeedId, selectedArticleId, loadFeeds, articles } = useStore();
 
   // Initialize storage and load feeds on mount
   useEffect(() => {
@@ -38,6 +43,34 @@ export default function App() {
     };
     initializeApp();
   }, [loadFeeds]);
+
+  // Process queued operations when coming back online
+  useEffect(() => {
+    if (isOnline && dbInitialized) {
+      syncService.processQueuedOperations().catch((error) => {
+        logger.error('Failed to process queued operations', error instanceof Error ? error : undefined);
+      });
+    }
+  }, [isOnline, dbInitialized]);
+
+  // Run cache maintenance periodically (every 6 hours)
+  useEffect(() => {
+    if (!dbInitialized) return;
+
+    // Run maintenance on mount
+    cacheService.runMaintenance().catch((error) => {
+      logger.error('Cache maintenance failed', error instanceof Error ? error : undefined);
+    });
+
+    // Schedule periodic maintenance
+    const maintenanceInterval = setInterval(() => {
+      cacheService.runMaintenance().catch((error) => {
+        logger.error('Cache maintenance failed', error instanceof Error ? error : undefined);
+      });
+    }, 6 * 60 * 60 * 1000); // Every 6 hours
+
+    return () => clearInterval(maintenanceInterval);
+  }, [dbInitialized]);
 
   // Show loading screen while initializing
   if (!dbInitialized) {
@@ -68,24 +101,44 @@ export default function App() {
       <div
         className={`fixed top-0 left-0 right-0 z-40 transition-colors ${
           isOnline
-            ? 'bg-green-500 text-white'
+            ? 'bg-primary text-white'
             : 'bg-yellow-500 text-dark-950'
         }`}
       >
         <div className="flex items-center justify-between px-4 py-2">
           <div className="text-sm font-medium">
-            {isOnline ? '✓ Online' : '⚠ Offline'}
+            RSS阅读器 {isOnline ? '✓' : '⚠️'}
           </div>
-          <nav className="flex gap-4">
+          <nav className="flex gap-2">
             <button
-              onClick={() => setCurrentPage('reader')}
+              onClick={() => setCurrentPage('feeds')}
               className={`text-sm font-medium px-3 py-1 rounded ${
-                currentPage === 'reader' 
+                currentPage === 'feeds' 
                   ? 'bg-white/20' 
                   : 'hover:bg-white/10'
               }`}
             >
-              阅读器
+              订阅源
+            </button>
+            <button
+              onClick={() => setCurrentPage('favorites')}
+              className={`text-sm font-medium px-3 py-1 rounded ${
+                currentPage === 'favorites' 
+                  ? 'bg-white/20' 
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              收藏
+            </button>
+            <button
+              onClick={() => setCurrentPage('history')}
+              className={`text-sm font-medium px-3 py-1 rounded ${
+                currentPage === 'history' 
+                  ? 'bg-white/20' 
+                  : 'hover:bg-white/10'
+              }`}
+            >
+              历史
             </button>
             <button
               onClick={() => setCurrentPage('settings')}
@@ -105,6 +158,10 @@ export default function App() {
       <div className="pt-14">
         {currentPage === 'settings' ? (
           <Settings />
+        ) : currentPage === 'favorites' ? (
+          selectedArticleId ? <ArticleView /> : <FavoritesPage />
+        ) : currentPage === 'history' ? (
+          selectedArticleId ? <ArticleView /> : <HistoryPage />
         ) : (
           <div className="grid grid-cols-1 tablet:grid-cols-12 gap-0 min-h-screen">
             {/* Feed list - left sidebar on tablet+, full width on mobile */}

@@ -162,8 +162,33 @@ class SyncService {
    * Execute a queued operation
    */
   private async executeOperation(operation: QueuedOperation): Promise<void> {
-    // TODO: Implement operation execution based on type
     logger.debug('Executing operation', { type: operation.type, data: operation.data });
+    
+    switch (operation.type) {
+      case 'subscribe':
+        // Re-attempt feed subscription
+        if (operation.data?.url) {
+          const { subscribeFeed } = await import('./feedService');
+          await subscribeFeed(operation.data.url, operation.data.categoryId);
+        }
+        break;
+      
+      case 'refresh':
+        // Re-attempt feed refresh
+        if (operation.data?.feedId) {
+          const { fetchAndStoreArticles } = await import('./feedService');
+          await fetchAndStoreArticles(operation.data.feedId);
+        }
+        break;
+      
+      case 'markRead':
+        // Mark article as read (already cached locally, no network needed)
+        logger.debug('Article read status already updated locally');
+        break;
+      
+      default:
+        logger.warn('Unknown operation type', { type: operation.type });
+    }
   }
 
   /**

@@ -37,14 +37,21 @@ interface StoreState {
   selectFeed: (feedId: string | null) => Promise<void>;
   unsubscribeFeed: (feedId: string) => Promise<void>;
   refreshAllFeeds: () => Promise<void>;
+  updateFeed: (feedId: string, updates: Partial<Feed>) => Promise<void>;
+  toggleFeedPause: (feedId: string) => Promise<void>;
 
   // Actions - Articles
   loadArticles: (feedId: string) => Promise<void>;
   selectArticle: (articleId: string | null) => Promise<void>;
   markArticleAsRead: (articleId: string) => Promise<void>;
+  toggleArticleFavorite: (articleId: string) => Promise<void>;
+  markAllAsRead: (feedId?: string) => Promise<void>;
 
   // Actions - Categories
   loadCategories: () => Promise<void>;
+  createCategory: (name: string) => Promise<void>;
+  updateCategory: (id: string, name: string) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 
   // Actions - Settings
   loadSettings: () => Promise<void>;
@@ -157,6 +164,41 @@ export const useStore = create<StoreState>()(
         }
       },
 
+      // Update feed
+      updateFeed: async (feedId: string, updates: Partial<Feed>) => {
+        try {
+          const feed = await storage.get('feeds', feedId);
+          if (!feed) throw new Error('Feed not found');
+          
+          Object.assign(feed, updates);
+          await storage.put('feeds', feed);
+          
+          const feeds = get().feeds.map(f => f.id === feedId ? feed : f);
+          set({ feeds });
+          logger.info('Updated feed', { feedId });
+        } catch (error) {
+          logger.error('Failed to update feed', error instanceof Error ? error : undefined);
+          throw error;
+        }
+      },
+
+      // Toggle feed pause
+      toggleFeedPause: async (feedId: string) => {
+        try {
+          const feed = await storage.get('feeds', feedId);
+          if (!feed) return;
+          
+          feed.isPaused = !feed.isPaused;
+          await storage.put('feeds', feed);
+          
+          const feeds = get().feeds.map(f => f.id === feedId ? feed : f);
+          set({ feeds });
+          logger.info('Toggled feed pause', { feedId, isPaused: feed.isPaused });
+        } catch (error) {
+          logger.error('Failed to toggle feed pause', error instanceof Error ? error : undefined);
+        }
+      },
+
       // Load articles for a specific feed
       loadArticles: async (feedId: string) => {
         try {
@@ -196,6 +238,48 @@ export const useStore = create<StoreState>()(
         }
       },
 
+      // Toggle article favorite
+      toggleArticleFavorite: async (articleId: string) => {
+        try {
+          const article = await storage.get('articles', articleId);
+          if (!article) return;
+
+          article.isFavorite = !article.isFavorite;
+          await storage.put('articles', article);
+
+          const articles = get().articles.map((a) => 
+            a.id === articleId ? { ...a, isFavorite: article.isFavorite } : a
+          );
+          set({ articles });
+          logger.info('Toggled favorite', { articleId, isFavorite: article.isFavorite });
+        } catch (error) {
+          logger.error('Failed to toggle favorite', error instanceof Error ? error : undefined);
+        }
+      },
+
+      // Mark all as read
+      markAllAsRead: async (feedId?: string) => {
+        try {
+          const allArticles = await storage.getAll('articles');
+          const articlesToMark = feedId 
+            ? allArticles.filter(a => a.feedId === feedId && !a.readAt)
+            : allArticles.filter(a => !a.readAt);
+
+          for (const article of articlesToMark) {
+            article.readAt = new Date();
+            await storage.put('articles', article);
+          }
+
+          const articles = get().articles.map(a => 
+            articlesToMark.some(m => m.id === a.id) ? { ...a, readAt: new Date() } : a
+          );
+          set({ articles });
+          logger.info('Marked all as read', { count: articlesToMark.length });
+        } catch (error) {
+          logger.error('Failed to mark all as read', error instanceof Error ? error : undefined);
+        }
+      },
+
       // Load all categories
       loadCategories: async () => {
         try {
@@ -204,6 +288,63 @@ export const useStore = create<StoreState>()(
           logger.info('Loaded categories', { count: categories.length });
         } catch (error) {
           logger.error('Failed to load categories', error instanceof Error ? error : undefined);
+        }
+      },
+
+      // Create new category
+      createCategory: async (name: string) => {
+        try {
+          const categories = get().categories;
+          const newCategory: Category = {
+            id: crypto.randomUUID(),
+            name,
+            order: categories.length,
+            createdAt: new Date(),
+          };
+          await storage.put('categories', newCategory);
+          set({ categories: [...categories, newCategory] });
+          logger.info('Created category', { name });
+        } catch (error) {
+          logger.error('Failed to create category', error instanceof Error ? error : undefined);
+          throw error;
+        }
+      },
+
+      // Update category
+      updateCategory: async (id: string, name: string) => {
+        try {
+          const category = await storage.get('categories', id);
+          if (!category) throw new Error('Category not found');
+          
+          category.name = name;
+          await storage.put('categories', category);
+          
+          const categories = get().categories.map(c => c.id === id ? category : c);
+          set({ categories });
+          logger.info('Updated category', { id, name });
+        } catch (error) {
+          logger.error('Failed to update category', error instanceof Error ? error : undefined);
+          throw error;
+        }
+      },
+
+      // Delete category
+      deleteCategory: async (id: string) => {
+        try {
+          // Unassign feeds from this category
+          const feeds = get().feeds;
+          for (const feed of feeds.filter(f => f.categoryId === id)) {
+            feed.categoryId = undefined;
+            await storage.put('feeds', feed);
+          }
+          
+          await storage.delete('categories', id);
+          const categories = get().categories.filter(c => c.id !== id);
+          set({ categories, feeds: feeds.map(f => f.categoryId === id ? {...f, categoryId: undefined} : f) });
+          logger.info('Deleted category', { id });
+        } catch (error) {
+          logger.error('Failed to delete category', error instanceof Error ? error : undefined);
+          throw error;
         }
       },
 
