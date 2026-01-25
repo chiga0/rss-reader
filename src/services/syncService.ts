@@ -165,7 +165,7 @@ class SyncService {
     logger.debug('Executing operation', { type: operation.type, data: operation.data });
     
     switch (operation.type) {
-      case 'subscribe':
+      case 'ADD_FEED':
         // Re-attempt feed subscription
         if (operation.data?.url) {
           const { subscribeFeed } = await import('./feedService');
@@ -173,7 +173,7 @@ class SyncService {
         }
         break;
       
-      case 'refresh':
+      case 'REFRESH_FEED':
         // Re-attempt feed refresh
         if (operation.data?.feedId) {
           const { fetchAndStoreArticles } = await import('./feedService');
@@ -181,9 +181,9 @@ class SyncService {
         }
         break;
       
-      case 'markRead':
+      case 'UPDATE_FEED':
         // Mark article as read (already cached locally, no network needed)
-        logger.debug('Article read status already updated locally');
+        logger.debug('Feed update already processed locally');
         break;
       
       default:

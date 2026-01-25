@@ -87,7 +87,7 @@ registerRoute(
  * Background Sync for feed refresh
  * Queue feed refresh requests when offline
  */
-self.addEventListener('sync', (event) => {
+self.addEventListener('sync', (event: any) => {
   if (event.tag === 'sync-feeds') {
     event.waitUntil(syncFeeds());
   }

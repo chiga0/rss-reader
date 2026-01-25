@@ -49,7 +49,7 @@ describe('Read Article Content', () => {
 
     expect(article).toBeDefined();
     expect(article?.content).toBeDefined();
-    expect(article?.content.length).toBeGreaterThan(0);
+    expect(article?.content?.length).toBeGreaterThan(0);
   });
 
   it('should include article metadata', async () => {

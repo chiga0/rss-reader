@@ -188,12 +188,12 @@ export const useStore = create<StoreState>()(
           const feed = await storage.get('feeds', feedId);
           if (!feed) return;
           
-          feed.isPaused = !feed.isPaused;
+          feed.paused = !feed.paused;
           await storage.put('feeds', feed);
           
           const feeds = get().feeds.map(f => f.id === feedId ? feed : f);
           set({ feeds });
-          logger.info('Toggled feed pause', { feedId, isPaused: feed.isPaused });
+          logger.info('Toggled feed pause', { feedId, paused: feed.paused });
         } catch (error) {
           logger.error('Failed to toggle feed pause', error instanceof Error ? error : undefined);
         }

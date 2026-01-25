@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshIntervalSelector } from '@components/Settings/RefreshIntervalSelector';
+import { ThemeSelector } from '../components/Settings/ThemeSelector';
 import { OPMLExportButton } from '@components/Settings/OPMLExportButton';
 import { OPMLImportDialog } from '@components/Settings/OPMLImportDialog';
 import { useStore } from '@hooks/useStore';

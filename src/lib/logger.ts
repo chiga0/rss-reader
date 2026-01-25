@@ -71,8 +71,11 @@ class Logger {
     this.output(this.createEntry('WARN', message, context));
   }
 
-  error(message: string, error?: Error, context?: LogContext) {
-    this.output(this.createEntry('ERROR', message, context, error));
+  error(message: string, errorOrContext?: Error | LogContext, context?: LogContext) {
+    const isError = errorOrContext instanceof Error;
+    const actualError = isError ? errorOrContext : undefined;
+    const actualContext = isError ? context : errorOrContext as LogContext;
+    this.output(this.createEntry('ERROR', message, actualContext, actualError));
   }
 }
 
