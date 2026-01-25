@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Constitution Requirement - Test-First (MANDATORY)**: Per RSS Reader Constitution Principle II, EVERY feature implementation MUST follow TDD. Tests MUST be written FIRST and MUST FAIL before implementation begins. Minimum 80% code coverage required.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -60,14 +60,16 @@ description: "Task list template for feature implementation"
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-Examples of foundational tasks (adjust based on your project):
+Examples of foundational tasks for RSS Reader PWA (adjust based on your project):
 
-- [ ] T004 Setup database schema and migrations framework
-- [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
-- [ ] T007 Create base models/entities that all stories depend on
-- [ ] T008 Configure error handling and logging infrastructure
-- [ ] T009 Setup environment configuration management
+- [ ] T004 [P] Setup IndexedDB schema and local storage framework
+- [ ] T005 [P] Implement Service Worker initialization and offline detection
+- [ ] T006 [P] Setup RSS parsing library and feed validation utility
+- [ ] T007 Create base data models (Feed, Article, Subscription, User types) with TypeScript interfaces
+- [ ] T008 Configure error handling, structured logging, and observability
+- [ ] T009 [P] Setup testing infrastructure (Vitest, Playwright, MSW) with example test suite
+- [ ] T010 [P] Configure responsive CSS framework/utilities for 375px/768px/1024px viewpoints
+- [ ] T011 Create Web App Manifest and PWA installation configuration
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 

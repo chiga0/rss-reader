@@ -31,7 +31,13 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+**Constitution Version**: 1.0.0 (RSS Reader PWA Constitution)
+
+- [ ] **Principle I (PWA Architecture)**: Feature supports multi-platform deployment (web/Android/iOS)
+- [ ] **Principle II (Test-First)**: Feature includes unit tests, integration tests; minimum 80% coverage target
+- [ ] **Principle III (Responsive Design)**: UI tested at 375px, 768px, 1024px viewports (if applicable)
+- [ ] **Principle IV (Modern Tech)**: Uses TypeScript 5.x, React 18.x+, Vite 5.x+, no deprecated dependencies
+- [ ] **Principle V (Observability)**: Includes error logging, performance tracking, structured logs
 
 ## Project Structure
 
@@ -48,51 +54,38 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  for this feature. For the RSS Reader PWA project, use Option 1 (standard web app).
+  Delete unused options and expand with real paths.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+# STANDARD: PWA Web Application (RSS Reader)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── components/          # Reusable UI components (responsive, multi-platform)
+├── pages/              # Page-level views (feed list, article detail, settings, etc.)
+├── services/           # Business logic (RSS parsing, feed management, storage)
+├── models/             # Data models (Feed, Article, Subscription types)
+├── utils/              # Utilities (date formatting, validators, helpers)
+├── hooks/              # Custom React/Vue hooks (useFeeds, useFavorites, etc.)
+├── styles/             # CSS/SCSS (breakpoints: mobile 375px, tablet 768px, desktop 1024px+)
+├── workers/            # Service Worker code (offline sync, background tasks)
+└── lib/                # PWA libraries (offline detection, sync manager, etc.)
 
 tests/
-├── contract/
-├── integration/
-└── unit/
+├── unit/               # Unit tests for services, utils, hooks
+├── integration/        # Integration tests (feed fetching, caching, UI interactions)
+└── e2e/               # End-to-end tests (user journeys across breakpoints)
 
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+public/
+├── manifest.json       # Web App Manifest (PWA metadata, icons, theme)
+├── service-worker.js   # Service Worker registration
+└── icons/             # App icons (192x192, 512x512 for Android/iOS)
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: [Document the selected structure and reference the real directories captured above]
 
 ## Complexity Tracking
 

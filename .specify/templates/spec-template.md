@@ -5,6 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "$ARGUMENTS"
 
+**Note on Scope**: All user stories MUST align with one or more of the core/secondary features defined in the Constitution (see `.specify/memory/constitution.md` - Feature Scope Definition). Mark each story with the related feature code (e.g., FR-001, FR-004).
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
