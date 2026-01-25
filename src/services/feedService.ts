@@ -12,7 +12,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // CORS proxy for development (bypasses browser CORS restrictions)
 // Production should use server-side proxy or Service Worker
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+const CORS_PROXY = 'https://api.allorigins.win/get?url=';
 const USE_CORS_PROXY = import.meta.env.DEV; // Only in development
 
 /**
@@ -27,7 +27,7 @@ export async function fetchFeedXML(url: string): Promise<{ xml: string; contentT
     
     const response = await fetch(fetchUrl, {
       headers: {
-        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml',
+        'Accept': USE_CORS_PROXY ? 'application/json' : 'application/rss+xml, application/atom+xml, application/xml, text/xml',
         'User-Agent': 'RSS-Reader-PWA/1.0',
       },
       cache: 'no-cache',
@@ -37,8 +37,18 @@ export async function fetchFeedXML(url: string): Promise<{ xml: string; contentT
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const contentType = response.headers.get('content-type');
-    const xml = await response.text();
+    let contentType = response.headers.get('content-type');
+    let xml: string;
+
+    // When using CORS proxy, extract contents from JSON response
+    if (USE_CORS_PROXY) {
+      const jsonData = await response.json();
+      xml = jsonData.contents;
+      // The original content-type is not preserved, so we'll detect from content
+      contentType = null;
+    } else {
+      xml = await response.text();
+    }
 
     // Validate it looks like a feed
     if (!looksLikeFeed(contentType, xml)) {
