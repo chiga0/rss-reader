@@ -57,20 +57,20 @@
 - [x] T012 [P] Install Workbox dependencies (vite-plugin-pwa@^0.17.5, workbox-precaching@^7.0.0, workbox-routing@^7.0.0, workbox-strategies@^7.0.0) in package.json
 - [x] T013 [P] Install DOMPurify@^3.0.8 and @types/dompurify@^3.0.5 for HTML sanitization in package.json
 - [x] T014 [P] Install fake-indexeddb@^5.0.2 as dev dependency for testing in package.json
-- [ ] T015 Configure vite-plugin-pwa in vite.config.ts with injectManifest strategy
-- [ ] T016 [P] Create RSS parser utility using DOMParser in src/lib/rssParser.ts
-- [ ] T017 [P] Create HTML sanitization utility using DOMPurify in src/utils/sanitize.ts
-- [ ] T018 [P] Create URL validation utility in src/utils/validators.ts
-- [ ] T019 [P] Create date formatting utility in src/utils/dateFormat.ts
+- [x] T015 Configure vite-plugin-pwa in vite.config.ts with injectManifest strategy
+- [x] T016 [P] Create RSS parser utility using DOMParser in src/lib/rssParser.ts
+- [x] T017 [P] Create HTML sanitization utility using DOMPurify in src/utils/sanitize.ts
+- [x] T018 [P] Create URL validation utility in src/utils/validators.ts
+- [x] T019 [P] Create date formatting utility in src/utils/dateFormat.ts
 
 ### Service Worker & PWA
 
-- [ ] T020 Create Service Worker entry point in src/workers/sw.ts with Workbox imports
-- [ ] T021 Implement precaching strategy for app shell (HTML, CSS, JS, fonts, icons) in src/workers/sw.ts
-- [ ] T022 Implement cache-first strategy for RSS feed responses in src/workers/sw.ts
-- [ ] T023 Implement stale-while-revalidate strategy for article images in src/workers/sw.ts
-- [ ] T024 Configure background sync for feed refresh in src/workers/sw.ts
-- [ ] T025 Update Service Worker registration in src/main.tsx to use Workbox plugin
+- [x] T020 Create Service Worker entry point in src/workers/sw.ts with Workbox imports
+- [x] T021 Implement precaching strategy for app shell (HTML, CSS, JS, fonts, icons) in src/workers/sw.ts
+- [x] T022 Implement cache-first strategy for RSS feed responses in src/workers/sw.ts
+- [x] T023 Implement stale-while-revalidate strategy for article images in src/workers/sw.ts
+- [x] T024 Configure background sync for feed refresh in src/workers/sw.ts
+- [x] T025 Update Service Worker registration in src/main.tsx to use Workbox plugin
 
 ### IndexedDB Schema Enhancements
 
