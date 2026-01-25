@@ -54,9 +54,9 @@
 
 ### Infrastructure & Core Libraries
 
-- [ ] T012 [P] Install Workbox dependencies (vite-plugin-pwa@^0.17.5, workbox-precaching@^7.0.0, workbox-routing@^7.0.0, workbox-strategies@^7.0.0) in package.json
-- [ ] T013 [P] Install DOMPurify@^3.0.8 and @types/dompurify@^3.0.5 for HTML sanitization in package.json
-- [ ] T014 [P] Install fake-indexeddb@^5.0.2 as dev dependency for testing in package.json
+- [x] T012 [P] Install Workbox dependencies (vite-plugin-pwa@^0.17.5, workbox-precaching@^7.0.0, workbox-routing@^7.0.0, workbox-strategies@^7.0.0) in package.json
+- [x] T013 [P] Install DOMPurify@^3.0.8 and @types/dompurify@^3.0.5 for HTML sanitization in package.json
+- [x] T014 [P] Install fake-indexeddb@^5.0.2 as dev dependency for testing in package.json
 - [ ] T015 Configure vite-plugin-pwa in vite.config.ts with injectManifest strategy
 - [ ] T016 [P] Create RSS parser utility using DOMParser in src/lib/rssParser.ts
 - [ ] T017 [P] Create HTML sanitization utility using DOMPurify in src/utils/sanitize.ts
