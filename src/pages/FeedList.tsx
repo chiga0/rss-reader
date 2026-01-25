@@ -1,12 +1,19 @@
 /**
- * Placeholder for FeedList page component
+ * FeedList Page
+ * Main page displaying all RSS feeds
  */
 
+import { useEffect } from 'react';
+import { useStore } from '../hooks/useStore';
+import { FeedList as FeedListComponent } from '../components/FeedList/FeedList';
+
 export default function FeedList() {
-  return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Feeds</h1>
-      <p className="text-gray-500">No feeds yet. Add a feed to get started!</p>
-    </div>
-  );
+  const { loadFeeds } = useStore();
+
+  // Load feeds on mount
+  useEffect(() => {
+    loadFeeds();
+  }, [loadFeeds]);
+
+  return <FeedListComponent />;
 }

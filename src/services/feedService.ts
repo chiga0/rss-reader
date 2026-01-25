@@ -100,6 +100,7 @@ export async function subscribeFeed(
     readAt: null,
     isFavorite: false,
     createdAt: new Date(),
+    deletedAt: null,
   }));
 
   // Store in IndexedDB
@@ -216,6 +217,7 @@ export async function fetchAndStoreArticles(feedId: string): Promise<Article[]> 
         readAt: null,
         isFavorite: false,
         createdAt: new Date(),
+        deletedAt: null,
       }));
 
     if (newArticles.length > 0) {

@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useAppStore } from '@hooks/useStore';
+import { useStore } from '@hooks/useStore';
 import { useTheme } from '@hooks/useTheme';
-import FeedList from '@pages/FeedList';
-import ArticleDetail from '@pages/ArticleDetail';
+import { FeedList } from '@components/FeedList/FeedList';
+import { ArticleList } from '@components/ArticleList/ArticleList';
+import { ArticleView } from '@components/ArticleView/ArticleView';
 import { logger } from '@lib/logger';
 
 export default function App() {
   const { resolvedTheme } = useTheme();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const selectedFeedId = useAppStore((state: any) => state.selectedFeedId);
+  const { selectedFeedId, selectedArticleId, loadFeeds } = useStore();
+
+  // Load feeds on mount
+  useEffect(() => {
+    loadFeeds();
+  }, [loadFeeds]);
 
   // Monitor online/offline status
   useEffect(() => {
@@ -49,20 +55,31 @@ export default function App() {
 
       {/* Main content area with margin for status bar */}
       <div className="pt-10">
-        <div className="grid grid-cols-1 tablet:grid-cols-3 gap-0 min-h-screen">
+        <div className="grid grid-cols-1 tablet:grid-cols-12 gap-0 min-h-screen">
           {/* Feed list - left sidebar on tablet+, full width on mobile */}
-          <div className="tablet:col-span-1 border-r border-gray-200 dark:border-dark-800">
+          <div className={`${selectedFeedId ? 'hidden tablet:block' : ''} tablet:col-span-3 border-r border-gray-200 dark:border-dark-800 h-screen overflow-y-auto`}>
             <FeedList />
           </div>
 
-          {/* Article detail - full width on mobile when selected, 2 cols on tablet+ */}
-          {selectedFeedId ? (
-            <div className="tablet:col-span-2">
-              <ArticleDetail />
+          {/* Article list - middle panel */}
+          {selectedFeedId && (
+            <div className={`${selectedArticleId ? 'hidden tablet:block' : ''} tablet:col-span-4 border-r border-gray-200 dark:border-dark-800 h-screen`}>
+              <ArticleList />
+            </div>
+          )}
+
+          {/* Article view - right panel */}
+          {selectedArticleId ? (
+            <div className="tablet:col-span-5 h-screen">
+              <ArticleView />
+            </div>
+          ) : selectedFeedId ? (
+            <div className="hidden tablet:col-span-5 tablet:flex items-center justify-center text-gray-500 dark:text-gray-400 h-screen">
+              <p>Select an article to read</p>
             </div>
           ) : (
-            <div className="hidden tablet:col-span-2 tablet:flex items-center justify-center text-gray-500 dark:text-gray-400">
-              <p>Select a feed or article to get started</p>
+            <div className="hidden tablet:col-span-9 tablet:flex items-center justify-center text-gray-500 dark:text-gray-400 h-screen">
+              <p>Select a feed to get started</p>
             </div>
           )}
         </div>

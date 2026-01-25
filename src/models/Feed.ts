@@ -10,6 +10,7 @@ export interface Feed {
   description: string;
   link?: string;
   iconUrl?: string;
+  imageUrl?: string; // Alias for iconUrl
   categoryId?: string;
   lastFetchedAt: Date | null;
   refreshIntervalMinutes: number;
@@ -32,6 +33,7 @@ export interface Article {
   readAt: Date | null;
   isFavorite: boolean;
   createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export interface Category {

@@ -120,6 +120,7 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
       publishedAt,
       readAt: null,
       isFavorite: false,
+      deletedAt: null,
     };
   });
 
@@ -191,6 +192,7 @@ function parseAtom(doc: Document, feedUrl: string): ParsedFeed {
       publishedAt,
       readAt: null,
       isFavorite: false,
+      deletedAt: null,
     };
   });
 

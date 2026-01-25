@@ -1,118 +1,194 @@
 /**
- * Zustand store for global app state management
+ * Zustand Store
+ * Global state management for feeds, articles, and UI
  * Aligned with constitutional Principle V (Observability)
  */
 
 import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import type { Feed, Article, Category } from '@models/Feed';
+import {
+  subscribeFeed as subscribeFeedService,
+  getArticlesForFeed,
+  markArticleAsRead as markArticleAsReadService,
+} from '@services/feedService';
+import { storage } from '@lib/storage';
 import { logger } from '@lib/logger';
-import type { Feed, Article, AppSettings, SyncState } from '@models/Feed';
 
-interface AppStore {
-  // Feed management
+interface StoreState {
+  // Data
   feeds: Feed[];
   articles: Article[];
-  selectedFeedId?: string;
-  selectedArticleId?: string;
+  categories: Category[];
+  selectedFeedId: string | null;
+  selectedArticleId: string | null;
 
-  // Sync state
-  syncState: SyncState;
+  // UI State
+  isLoading: boolean;
+  error: string | null;
+  isAddFeedDialogOpen: boolean;
 
-  // Settings
-  settings: AppSettings;
+  // Actions - Feeds
+  loadFeeds: () => Promise<void>;
+  subscribeFeed: (url: string, categoryId?: string) => Promise<{ success: boolean; error?: string }>;
+  selectFeed: (feedId: string | null) => Promise<void>;
+  unsubscribeFeed: (feedId: string) => Promise<void>;
 
-  // Actions
-  setFeeds: (feeds: Feed[]) => void;
-  addFeed: (feed: Feed) => void;
-  removeFeed: (feedId: string) => void;
+  // Actions - Articles
+  loadArticles: (feedId: string) => Promise<void>;
+  selectArticle: (articleId: string | null) => Promise<void>;
+  markArticleAsRead: (articleId: string) => Promise<void>;
 
-  setArticles: (articles: Article[]) => void;
-  addArticle: (article: Article) => void;
-  markArticleAsRead: (articleId: string) => void;
-  toggleFavorite: (articleId: string) => void;
+  // Actions - Categories
+  loadCategories: () => Promise<void>;
 
-  selectFeed: (feedId?: string) => void;
-  selectArticle: (articleId?: string) => void;
-
-  setSyncState: (state: SyncState) => void;
-  setSettings: (settings: Partial<AppSettings>) => void;
+  // Actions - UI
+  setError: (error: string | null) => void;
+  openAddFeedDialog: () => void;
+  closeAddFeedDialog: () => void;
 }
 
-export const useAppStore = create<AppStore>((set: any) => ({
-  feeds: [],
-  articles: [],
-  syncState: { isLoading: false },
-  settings: {
-    theme: 'system',
-    refreshInterval: 60,
-    maxArticlesPerFeed: 100,
-    enableNotifications: true,
-    enableOfflineSync: true,
-  },
+export const useStore = create<StoreState>()(
+  devtools(
+    (set, get) => ({
+      // Initial state
+      feeds: [],
+      articles: [],
+      categories: [],
+      selectedFeedId: null,
+      selectedArticleId: null,
+      isLoading: false,
+      error: null,
+      isAddFeedDialogOpen: false,
 
-  setFeeds: (feeds) => {
-    logger.debug('Setting feeds', { count: feeds.length });
-    set({ feeds });
-  },
+      // Load all feeds from storage
+      loadFeeds: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          const feeds = await storage.getAll('feeds');
+          const activeFeeds = feeds.filter(f => !f.deletedAt);
+          set({ feeds: activeFeeds, isLoading: false });
+          logger.info('Loaded feeds', { count: activeFeeds.length });
+        } catch (error) {
+          logger.error('Failed to load feeds', error instanceof Error ? error : undefined);
+          set({ error: 'Failed to load feeds', isLoading: false });
+        }
+      },
 
-  addFeed: (feed) => {
-    logger.info('Adding feed', { feedId: feed.id, title: feed.title });
-    set((state: AppStore) => ({ feeds: [...state.feeds, feed] }));
-  },
+      // Subscribe to a new feed
+      subscribeFeed: async (url: string, categoryId?: string) => {
+        set({ isLoading: true, error: null });
+        const result = await subscribeFeedService(url, categoryId);
 
-  removeFeed: (feedId) => {
-    logger.info('Removing feed', { feedId });
-    set((state: AppStore) => ({ feeds: state.feeds.filter((f: Feed) => f.id !== feedId) }));
-  },
+        if (result.success && result.feed) {
+          const { feeds } = get();
+          set({
+            feeds: [...feeds, result.feed],
+            isLoading: false,
+            isAddFeedDialogOpen: false,
+          });
+          logger.info('Feed subscribed', { feedId: result.feed.id });
+          return { success: true };
+        } else {
+          set({ error: result.error || 'Failed to subscribe', isLoading: false });
+          return { success: false, error: result.error };
+        }
+      },
 
-  setArticles: (articles) => {
-    logger.debug('Setting articles', { count: articles.length });
-    set({ articles });
-  },
+      // Select a feed and load its articles
+      selectFeed: async (feedId: string | null) => {
+        set({ selectedFeedId: feedId, selectedArticleId: null });
+        if (feedId) {
+          await get().loadArticles(feedId);
+        } else {
+          set({ articles: [] });
+        }
+      },
 
-  addArticle: (article) => {
-    logger.debug('Adding article', { articleId: article.id, feedId: article.feedId });
-    set((state: AppStore) => ({ articles: [...state.articles, article] }));
-  },
+      // Unsubscribe from a feed (soft delete)
+      unsubscribeFeed: async (feedId: string) => {
+        try {
+          const feed = await storage.get('feeds', feedId);
+          if (feed) {
+            feed.deletedAt = new Date();
+            await storage.put('feeds', feed);
 
-  markArticleAsRead: (articleId) => {
-    logger.debug('Marking article as read', { articleId });
-    set((state: AppStore) => ({
-      articles: state.articles.map((article: Article) =>
-        article.id === articleId ? { ...article, isRead: true, readAt: Date.now() } : article,
-      ),
-    }));
-  },
+            const { feeds } = get();
+            set({ feeds: feeds.filter(f => f.id !== feedId) });
+            logger.info('Feed unsubscribed', { feedId });
+          }
+        } catch (error) {
+          logger.error('Failed to unsubscribe feed', error instanceof Error ? error : undefined, { feedId });
+          set({ error: 'Failed to unsubscribe from feed' });
+        }
+      },
 
-  toggleFavorite: (articleId) => {
-    logger.debug('Toggling favorite', { articleId });
-    set((state: AppStore) => ({
-      articles: state.articles.map((article: Article) =>
-        article.id === articleId ? { ...article, isFavorite: !article.isFavorite } : article,
-      ),
-    }));
-  },
+      // Load articles for a specific feed
+      loadArticles: async (feedId: string) => {
+        try {
+          set({ isLoading: true, error: null });
+          const articles = await getArticlesForFeed(feedId);
+          set({ articles, isLoading: false });
+          logger.info('Loaded articles', { feedId, count: articles.length });
+        } catch (error) {
+          logger.error('Failed to load articles', error instanceof Error ? error : undefined, { feedId });
+          set({ error: 'Failed to load articles', isLoading: false });
+        }
+      },
 
-  selectFeed: (feedId) => {
-    logger.debug('Selecting feed', { feedId: feedId || 'none' });
-    set({ selectedFeedId: feedId });
-  },
+      // Select an article for reading
+      selectArticle: async (articleId: string | null) => {
+        set({ selectedArticleId: articleId });
 
-  selectArticle: (articleId) => {
-    logger.debug('Selecting article', { articleId: articleId || 'none' });
-    set({ selectedArticleId: articleId });
-  },
+        if (articleId) {
+          // Mark as read when selected
+          await get().markArticleAsRead(articleId);
+        }
+      },
 
-  setSyncState: (syncState) => {
-    if (syncState.error) {
-      logger.warn('Sync state updated with error', { error: syncState.error });
-    } else {
-      logger.debug('Sync state updated', { isLoading: syncState.isLoading });
-    }
-    set({ syncState });
-  },
+      // Mark article as read
+      markArticleAsRead: async (articleId: string) => {
+        try {
+          await markArticleAsReadService(articleId);
 
-  setSettings: (settings) => {
-    logger.info('Settings updated', settings);
-    set((state: AppStore) => ({ settings: { ...state.settings, ...settings } }));
-  },
-}));
+          // Update article in state
+          const { articles } = get();
+          const updatedArticles = articles.map(a =>
+            a.id === articleId ? { ...a, readAt: new Date() } : a
+          );
+          set({ articles: updatedArticles });
+        } catch (error) {
+          logger.error('Failed to mark article as read', error instanceof Error ? error : undefined, { articleId });
+        }
+      },
+
+      // Load all categories
+      loadCategories: async () => {
+        try {
+          const categories = await storage.getAll('categories');
+          set({ categories });
+          logger.info('Loaded categories', { count: categories.length });
+        } catch (error) {
+          logger.error('Failed to load categories', error instanceof Error ? error : undefined);
+        }
+      },
+
+      // Set error message
+      setError: (error: string | null) => {
+        set({ error });
+      },
+
+      // Open add feed dialog
+      openAddFeedDialog: () => {
+        set({ isAddFeedDialogOpen: true, error: null });
+      },
+
+      // Close add feed dialog
+      closeAddFeedDialog: () => {
+        set({ isAddFeedDialogOpen: false, error: null });
+      },
+    }),
+    { name: 'RSS Reader Store' }
+  )
+);
+
