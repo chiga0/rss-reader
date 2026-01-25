@@ -45,20 +45,24 @@ export async function fetchFeedXML(url: string): Promise<{ xml: string; contentT
 }
 
 /**
- * Subscribe to a new feed
+ * Subscribe to a new feed (with error handling for tests)
  */
-export async function subscribeFeed(url: string, categoryId?: string): Promise<{ feed: Feed; articles: Article[] }> {
-  const normalizedUrl = validateFeedURL(url);
-  if (!normalizedUrl) {
-    throw new Error('Invalid feed URL');
-  }
+export async function subscribeFeed(
+  url: string,
+  categoryId?: string
+): Promise<{ success: boolean; feed?: Feed; articles?: Article[]; error?: string }> {
+  try {
+    const normalizedUrl = validateFeedURL(url);
+    if (!normalizedUrl) {
+      return { success: false, error: 'Invalid feed URL' };
+    }
 
   // Check for duplicate
   const existingFeeds = await storage.getAll('feeds');
   const duplicate = existingFeeds.find(f => f.url === normalizedUrl && !f.deletedAt);
   if (duplicate) {
     logger.warn('Feed already exists', { url: normalizedUrl });
-    throw new Error('Feed already subscribed');
+    return { success: false, error: 'You are already subscribed to this feed' };
   }
 
   // Fetch and parse
@@ -104,7 +108,74 @@ export async function subscribeFeed(url: string, categoryId?: string): Promise<{
 
   logger.info('Subscribed to feed', { feedId: feed.id, title: feed.title, articleCount: articles.length });
 
-  return { feed, articles };
+  return { success: true, feed, articles };
+  } catch (error) {
+    logger.error('Failed to subscribe to feed', { url, error });
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to subscribe to feed',
+    };
+  }
+}
+
+/**
+ * Get articles for a specific feed
+ */
+export async function getArticlesForFeed(
+  feedId: string,
+  options: { limit?: number; includeDeleted?: boolean } = {}
+): Promise<Article[]> {
+  const { limit, includeDeleted = false } = options;
+
+  // Check if feed exists and not deleted
+  if (!includeDeleted) {
+    const feed = await storage.get('feeds', feedId);
+    if (!feed || feed.deletedAt) {
+      return [];
+    }
+  }
+
+  // Get articles for this feed
+  let articles = await storage.getAllByIndex('articles', 'feedId', feedId);
+
+  // Sort by publishedAt descending (newest first)
+  articles.sort((a, b) => {
+    const dateA = new Date(a.publishedAt).getTime();
+    const dateB = new Date(b.publishedAt).getTime();
+    return dateB - dateA;
+  });
+
+  // Apply limit if specified
+  if (limit) {
+    articles = articles.slice(0, limit);
+  }
+
+  return articles;
+}
+
+/**
+ * Get a single article by ID
+ */
+export async function getArticleById(articleId: string): Promise<Article | null> {
+  const article = await storage.get('articles', articleId);
+  return article || null;
+}
+
+/**
+ * Mark an article as read
+ */
+export async function markArticleAsRead(articleId: string): Promise<void> {
+  const article = await storage.get('articles', articleId);
+  if (!article) {
+    throw new Error('Article not found');
+  }
+
+  // Only update if not already read
+  if (!article.readAt) {
+    article.readAt = new Date();
+    await storage.put('articles', article);
+    logger.debug('Marked article as read', { articleId });
+  }
 }
 
 /**
