@@ -9,7 +9,6 @@ import { FeedCard } from './FeedCard';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 import { AddFeedDialog } from '../AddFeedDialog/AddFeedDialog';
-import { syncService } from '@services/syncService';
 
 export function FeedList() {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -23,6 +22,7 @@ export function FeedList() {
     setError,
     openAddFeedDialog,
     closeAddFeedDialog,
+    refreshAllFeeds,
   } = useStore();
 
   // Get article count for each feed
@@ -39,7 +39,7 @@ export function FeedList() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await syncService.refreshAllFeeds();
+      await refreshAllFeeds();
     } catch (error) {
       setError('刷新失败,请重试');
     } finally {

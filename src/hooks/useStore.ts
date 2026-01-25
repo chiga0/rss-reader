@@ -6,12 +6,13 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Feed, Article, Category } from '@models/Feed';
+import type { Feed, Article, Category, UserSettings, SyncState } from '@models/Feed';
 import {
   subscribeFeed as subscribeFeedService,
   getArticlesForFeed,
   markArticleAsRead as markArticleAsReadService,
 } from '@services/feedService';
+import { syncService } from '@services/syncService';
 import { storage } from '@lib/storage';
 import { logger } from '@lib/logger';
 
@@ -22,6 +23,8 @@ interface StoreState {
   categories: Category[];
   selectedFeedId: string | null;
   selectedArticleId: string | null;
+  settings: UserSettings | null;
+  syncState: SyncState | null;
 
   // UI State
   isLoading: boolean;
@@ -33,6 +36,7 @@ interface StoreState {
   subscribeFeed: (url: string, categoryId?: string) => Promise<{ success: boolean; error?: string }>;
   selectFeed: (feedId: string | null) => Promise<void>;
   unsubscribeFeed: (feedId: string) => Promise<void>;
+  refreshAllFeeds: () => Promise<void>;
 
   // Actions - Articles
   loadArticles: (feedId: string) => Promise<void>;
@@ -41,6 +45,13 @@ interface StoreState {
 
   // Actions - Categories
   loadCategories: () => Promise<void>;
+
+  // Actions - Settings
+  loadSettings: () => Promise<void>;
+  updateSettings: (settings: UserSettings) => Promise<void>;
+
+  // Actions - Sync
+  loadSyncState: () => Promise<void>;
 
   // Actions - UI
   setError: (error: string | null) => void;
@@ -57,6 +68,8 @@ export const useStore = create<StoreState>()(
       categories: [],
       selectedFeedId: null,
       selectedArticleId: null,
+      settings: null,
+      syncState: null,
       isLoading: false,
       error: null,
       isAddFeedDialogOpen: false,
@@ -123,6 +136,27 @@ export const useStore = create<StoreState>()(
         }
       },
 
+      // Refresh all feeds
+      refreshAllFeeds: async () => {
+        try {
+          set({ isLoading: true, error: null });
+          await syncService.refreshAllFeeds();
+          
+          // Reload feeds and articles after refresh
+          await get().loadFeeds();
+          const { selectedFeedId } = get();
+          if (selectedFeedId) {
+            await get().loadArticles(selectedFeedId);
+          }
+          
+          set({ isLoading: false });
+          logger.info('All feeds refreshed');
+        } catch (error) {
+          logger.error('Failed to refresh feeds', error instanceof Error ? error : undefined);
+          set({ error: 'Failed to refresh feeds', isLoading: false });
+        }
+      },
+
       // Load articles for a specific feed
       loadArticles: async (feedId: string) => {
         try {
@@ -170,6 +204,48 @@ export const useStore = create<StoreState>()(
           logger.info('Loaded categories', { count: categories.length });
         } catch (error) {
           logger.error('Failed to load categories', error instanceof Error ? error : undefined);
+        }
+      },
+
+      // Load user settings
+      loadSettings: async () => {
+        try {
+          const settings = await storage.get('settings', 'default');
+          set({ settings });
+          logger.info('Loaded settings');
+        } catch (error) {
+          logger.error('Failed to load settings', error instanceof Error ? error : undefined);
+        }
+      },
+
+      // Update user settings
+      updateSettings: async (newSettings: UserSettings) => {
+        try {
+          await storage.put('settings', newSettings);
+          set({ settings: newSettings });
+          
+          // Restart auto-refresh with new interval
+          if (newSettings.enableBackgroundSync && newSettings.defaultRefreshIntervalMinutes > 0) {
+            await syncService.startAutoRefresh(newSettings.defaultRefreshIntervalMinutes);
+          } else {
+            syncService.stopAutoRefresh();
+          }
+          
+          logger.info('Settings updated', { settings: newSettings });
+        } catch (error) {
+          logger.error('Failed to update settings', error instanceof Error ? error : undefined);
+          set({ error: 'Failed to save settings' });
+        }
+      },
+
+      // Load sync state
+      loadSyncState: async () => {
+        try {
+          const syncState = await storage.get('syncState', 'default');
+          set({ syncState });
+          logger.info('Loaded sync state');
+        } catch (error) {
+          logger.error('Failed to load sync state', error instanceof Error ? error : undefined);
         }
       },
 
