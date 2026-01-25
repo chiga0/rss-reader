@@ -1,6 +1,6 @@
 /**
  * Core data models for RSS Reader application
- * Aligned with TypeScript strict mode
+ * Aligned with data-model.md specification
  */
 
 export interface Feed {
@@ -8,59 +8,69 @@ export interface Feed {
   url: string;
   title: string;
   description: string;
-  imageUrl?: string;
-  category?: string;
-  lastUpdated: number; // Timestamp
-  updateInterval: number; // Minutes
-  isActive: boolean;
+  link?: string;
+  iconUrl?: string;
+  categoryId?: string;
+  lastFetchedAt: Date | null;
+  refreshIntervalMinutes: number;
+  paused: boolean;
   errorCount: number;
-  createdAt: number;
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export interface Article {
   id: string;
   feedId: string;
   title: string;
-  description: string;
+  summary: string;
   content?: string;
   author?: string;
   imageUrl?: string;
-  url: string;
-  publishedAt: number; // Timestamp
-  readAt?: number;
+  link: string;
+  publishedAt: Date;
+  readAt: Date | null;
   isFavorite: boolean;
-  isRead: boolean;
+  createdAt: Date;
 }
 
-export interface Subscription {
+export interface Category {
   id: string;
-  feedId: string;
-  category?: string;
-  addedAt: number;
-  notification: boolean;
+  name: string;
+  order: number;
+  createdAt: Date;
 }
 
-export interface AppSettings {
+export interface UserSettings {
+  id: string; // Singleton: always 'default'
   theme: 'light' | 'dark' | 'system';
-  refreshInterval: number; // Minutes
+  defaultRefreshIntervalMinutes: number;
   maxArticlesPerFeed: number;
   enableNotifications: boolean;
-  enableOfflineSync: boolean;
-  lastSyncTime?: number;
+  enableBackgroundSync: boolean;
 }
 
 export interface SyncState {
-  isLoading: boolean;
-  error?: string;
-  lastSync?: number;
+  id: string; // Singleton: always 'default'
+  isSyncing: boolean;
+  lastSyncAt: Date | null;
+  queuedOperations: QueuedOperation[];
+}
+
+export interface QueuedOperation {
+  type: 'ADD_FEED' | 'DELETE_FEED' | 'UPDATE_FEED' | 'REFRESH_FEED';
+  data: any;
+  timestamp: Date;
 }
 
 export interface FeedState {
   feeds: Feed[];
   articles: Article[];
+  categories: Category[];
+  settings: UserSettings | null;
+  syncState: SyncState | null;
   selectedFeedId?: string;
   selectedArticleId?: string;
-  syncState: SyncState;
 }
 
 export type FeedStatus = 'idle' | 'loading' | 'success' | 'error';

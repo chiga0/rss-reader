@@ -74,21 +74,21 @@
 
 ### IndexedDB Schema Enhancements
 
-- [ ] T026 Add categories object store to IndexedDB schema in src/lib/storage.ts (version 1)
-- [ ] T027 Add settings object store to IndexedDB schema in src/lib/storage.ts (version 1)
-- [ ] T028 Add syncState object store to IndexedDB schema in src/lib/storage.ts (version 1)
-- [ ] T029 [P] Implement bulk write operations for OPML import in src/lib/storage.ts
-- [ ] T030 [P] Implement storage quota monitoring utility in src/lib/storage.ts
+- [x] T026 Add categories object store to IndexedDB schema in src/lib/storage.ts (version 1)
+- [x] T027 Add settings object store to IndexedDB schema in src/lib/storage.ts (version 1)
+- [x] T028 Add syncState object store to IndexedDB schema in src/lib/storage.ts (version 1)
+- [x] T029 [P] Implement bulk write operations for OPML import in src/lib/storage.ts
+- [x] T030 [P] Implement storage quota monitoring utility in src/lib/storage.ts
 
 ### Core Services
 
-- [ ] T031 Complete RSS feed fetching in src/services/feedService.ts (replace placeholder)
-- [ ] T032 Implement RSS 2.0 parsing logic in src/lib/rssParser.ts
-- [ ] T033 Implement Atom 1.0 parsing logic in src/lib/rssParser.ts
-- [ ] T034 [P] Create OPML export service in src/services/opmlService.ts
-- [ ] T035 [P] Create OPML import service in src/services/opmlService.ts
-- [ ] T036 [P] Create sync service for background operations in src/services/syncService.ts
-- [ ] T037 [P] Create cache management service in src/services/cacheService.ts
+- [x] T031 Complete RSS feed fetching in src/services/feedService.ts (replace placeholder)
+- [x] T032 Implement RSS 2.0 parsing logic in src/lib/rssParser.ts
+- [x] T033 Implement Atom 1.0 parsing logic in src/lib/rssParser.ts
+- [x] T034 [P] Create OPML export service in src/services/opmlService.ts
+- [x] T035 [P] Create OPML import service in src/services/opmlService.ts
+- [x] T036 [P] Create sync service for background operations in src/services/syncService.ts
+- [x] T037 [P] Create cache management service in src/services/cacheService.ts
 
 ### Theme Management
 
