@@ -289,6 +289,8 @@ class Storage {
     const quota = await this.getQuota();
     return quota.usage;
   }
+  
+  /**
    * Query by index
    */
   async getAllByIndex<K extends keyof StorageObjects>(

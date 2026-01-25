@@ -98,12 +98,12 @@
 
 ### Testing Infrastructure
 
-- [ ] T041 [P] Write unit tests for RSS parser (10+ test cases) in tests/unit/rssParser.test.ts
-- [ ] T042 [P] Write unit tests for OPML service (import/export) in tests/unit/opmlService.test.ts
-- [ ] T043 [P] Write unit tests for validators in tests/unit/validators.test.ts
-- [ ] T044 [P] Write unit tests for Storage bulk operations in tests/unit/storage.test.ts
-- [ ] T045 [P] Setup MSW for API mocking in tests/setup.ts
-- [ ] T046 [P] Create test fixtures for RSS/Atom feeds in tests/fixtures/
+- [x] T041 [P] Write unit tests for RSS parser (10+ test cases) in tests/unit/rssParser.test.ts
+- [x] T042 [P] Write unit tests for OPML service (import/export) in tests/unit/opmlService.test.ts
+- [x] T043 [P] Write unit tests for validators in tests/unit/validators.test.ts
+- [x] T044 [P] Write unit tests for Storage bulk operations in tests/unit/storage.test.ts
+- [x] T045 [P] Setup MSW for API mocking in tests/setup.ts
+- [x] T046 [P] Create test fixtures for RSS/Atom feeds in tests/fixtures/
 
 **Checkpoint**: ✅ Foundation ready - User story implementation can now begin in parallel
 

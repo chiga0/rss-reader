@@ -28,10 +28,24 @@ export function validateFeedURL(urlString: string): string | null {
     return null;
   }
 
+  // Check for invalid protocols first
+  if (trimmed.match(/^(javascript|data|file):/i)) {
+    logger.warn('Invalid feed URL protocol', { url: urlString });
+    return null;
+  }
+
   // Add https:// if no protocol specified
   let normalized = trimmed;
   if (!normalized.match(/^https?:\/\//i)) {
     normalized = `https://${normalized}`;
+  }
+
+  // Additional validation for malformed URLs
+  if (!normalized.match(/^https?:\/\/[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}(:[0-9]{1,5})?(\/.*)?$/i)) {
+    if (!normalized.match(/^https?:\/\/localhost(:[0-9]{1,5})?(\/.*)?$/i)) {
+      logger.warn('Invalid feed URL format', { url: urlString });
+      return null;
+    }
   }
 
   if (!isValidURL(normalized)) {
@@ -78,6 +92,7 @@ export function sanitizeString(str: string, maxLength: number = 1000): string {
 export function looksLikeFeed(contentType: string | null, content: string): boolean {
   // Check Content-Type header
   if (contentType) {
+    const lowerContentType = contentType.toLowerCase();
     const feedTypes = [
       'application/rss+xml',
       'application/atom+xml',
@@ -86,7 +101,7 @@ export function looksLikeFeed(contentType: string | null, content: string): bool
       'application/rdf+xml',
     ];
     
-    if (feedTypes.some(type => contentType.includes(type))) {
+    if (feedTypes.some(type => lowerContentType.includes(type))) {
       return true;
     }
   }
