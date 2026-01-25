@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RefreshIntervalSelector } from '@components/Settings/RefreshIntervalSelector';
+import { ThemeSelector } from '@components/Settings/ThemeSelector';
 import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
@@ -120,49 +121,7 @@ export default function Settings() {
               主题
             </h2>
             
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="theme"
-                  value="light"
-                  checked={settings.theme === 'light'}
-                  onChange={() => handleThemeChange('light')}
-                  className="text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  浅色
-                </span>
-              </label>
-              
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="theme"
-                  value="dark"
-                  checked={settings.theme === 'dark'}
-                  onChange={() => handleThemeChange('dark')}
-                  className="text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  深色
-                </span>
-              </label>
-              
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="theme"
-                  value="system"
-                  checked={settings.theme === 'system'}
-                  onChange={() => handleThemeChange('system')}
-                  className="text-primary-600 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
-                />
-                <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  跟随系统
-                </span>
-              </label>
-            </div>
+            <ThemeSelector />
           </div>
 
           {/* Notification Settings Section */}

@@ -90,7 +90,14 @@ export function useTheme() {
   // Set theme with persistence
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    
+    // Clear localStorage for system theme, otherwise persist
+    if (newTheme === 'system') {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+    } else {
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    }
+    
     logger.info('Theme changed', { theme: newTheme });
   };
 
@@ -103,6 +110,7 @@ export function useTheme() {
   return {
     theme,
     resolvedTheme,
+    effectiveTheme: resolvedTheme, // Alias for compatibility
     setTheme,
     toggleTheme,
   };
