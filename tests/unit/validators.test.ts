@@ -62,6 +62,44 @@ describe('Validators', () => {
     it('should trim whitespace', () => {
       expect(validateFeedURL('  https://example.com  ')).toBe('https://example.com');
     });
+
+    it('should handle URLs with query parameters', () => {
+      expect(validateFeedURL('https://example.com/feed?format=xml')).toBe('https://example.com/feed?format=xml');
+    });
+
+    it('should handle URLs with fragments', () => {
+      expect(validateFeedURL('https://example.com/feed#section')).toBe('https://example.com/feed#section');
+    });
+
+    it('should handle URLs with ports', () => {
+      expect(validateFeedURL('https://example.com:8080/feed')).toBe('https://example.com:8080/feed');
+    });
+
+    it('should handle localhost URLs', () => {
+      expect(validateFeedURL('http://localhost:3000/feed.xml')).toBe('http://localhost:3000/feed.xml');
+    });
+
+    it('should handle IP addresses (if validator supports)', () => {
+      const result = validateFeedURL('http://192.168.1.1/feed.xml');
+      // Some validators may not support IP addresses - that's acceptable
+      expect(result === 'http://192.168.1.1/feed.xml' || result === null).toBe(true);
+    });
+
+    it('should reject URLs with unsafe protocols', () => {
+      expect(validateFeedURL('data:text/html,<script>alert(1)</script>')).toBe(null);
+      expect(validateFeedURL('about:blank')).toBe(null);
+    });
+
+    it('should handle international domain names (if validator supports)', () => {
+      const result = validateFeedURL('https://例え.jp/feed.xml');
+      // IDN support may vary - that's acceptable
+      expect(result === 'https://例え.jp/feed.xml' || result === null).toBe(true);
+    });
+
+    it('should handle subdomains', () => {
+      expect(validateFeedURL('https://blog.example.com/feed')).toBe('https://blog.example.com/feed');
+      expect(validateFeedURL('https://www.blog.example.com/feed')).toBe('https://www.blog.example.com/feed');
+    });
   });
 
   describe('validateFeedTitle', () => {

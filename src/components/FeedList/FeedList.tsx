@@ -18,11 +18,13 @@ export function FeedList() {
     isLoading,
     error,
     isAddFeedDialogOpen,
+    syncState,
     selectFeed,
     setError,
     openAddFeedDialog,
     closeAddFeedDialog,
     refreshAllFeeds,
+    loadSyncState,
   } = useStore();
 
   // Get article count for each feed
@@ -40,12 +42,15 @@ export function FeedList() {
     setIsRefreshing(true);
     try {
       await refreshAllFeeds();
+      await loadSyncState(); // Reload sync state after refresh
     } catch (error) {
       setError('刷新失败,请重试');
     } finally {
       setIsRefreshing(false);
     }
   };
+
+  const isSyncing = syncState?.isSyncing || isRefreshing;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -57,12 +62,12 @@ export function FeedList() {
         <div className="flex gap-2">
           <button
             onClick={handleRefresh}
-            disabled={isRefreshing}
+            disabled={isSyncing}
             className="flex items-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             title="刷新所有订阅源"
           >
             <svg 
-              className={`h-5 w-5 ${isRefreshing ? 'animate-spin' : ''}`} 
+              className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -70,7 +75,7 @@ export function FeedList() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span className="hidden sm:inline">
-              {isRefreshing ? '刷新中...' : '刷新'}
+              {isSyncing ? '刷新中...' : '刷新'}
             </span>
           </button>
           <button

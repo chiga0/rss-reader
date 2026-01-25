@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '@hooks/useStore';
 import { useTheme } from '@hooks/useTheme';
+import { useOfflineDetection } from '@hooks/useOfflineDetection';
 import { FeedList } from '@components/FeedList/FeedList';
 import { ArticleList } from '@components/ArticleList/ArticleList';
 import { ArticleView } from '@components/ArticleView/ArticleView';
+import { OfflineIndicator } from '@components/Common/OfflineIndicator';
 import Settings from '@pages/Settings';
 import { logger } from '@lib/logger';
 import { storage } from '@lib/storage';
@@ -11,7 +13,7 @@ import { syncService } from '@services/syncService';
 
 export default function App() {
   const { resolvedTheme } = useTheme();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { isOnline } = useOfflineDetection();
   const [dbInitialized, setDbInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState<'reader' | 'settings'>('reader');
   const { selectedFeedId, selectedArticleId, loadFeeds } = useStore();
@@ -37,26 +39,6 @@ export default function App() {
     initializeApp();
   }, [loadFeeds]);
 
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      logger.info('Application is online');
-    };
-    const handleOffline = () => {
-      setIsOnline(false);
-      logger.info('Application is offline');
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   // Show loading screen while initializing
   if (!dbInitialized) {
     return (
@@ -79,9 +61,12 @@ export default function App() {
         resolvedTheme === 'dark' ? 'bg-dark-950 text-white' : 'bg-white text-dark-900'
       }`}
     >
+      {/* Offline Indicator */}
+      <OfflineIndicator />
+
       {/* Status bar with navigation */}
       <div
-        className={`fixed top-0 left-0 right-0 z-50 transition-colors ${
+        className={`fixed top-0 left-0 right-0 z-40 transition-colors ${
           isOnline
             ? 'bg-green-500 text-white'
             : 'bg-yellow-500 text-dark-950'

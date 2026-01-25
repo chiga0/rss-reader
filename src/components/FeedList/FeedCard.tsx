@@ -4,6 +4,7 @@
  */
 
 import { Feed } from '../../models/Feed';
+import { formatRelativeTime } from '../../utils/dateFormat';
 
 interface FeedCardProps {
   feed: Feed;
@@ -53,8 +54,11 @@ export function FeedCard({ feed, articleCount, onClick }: FeedCardProps) {
           {articleCount} {articleCount === 1 ? 'article' : 'articles'}
         </span>
         {feed.lastFetchedAt && (
-          <span>
-            Updated {new Date(feed.lastFetchedAt).toLocaleDateString()}
+          <span className="flex items-center gap-1" title={`Last refreshed: ${new Date(feed.lastFetchedAt).toLocaleString()}`}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {formatRelativeTime(new Date(feed.lastFetchedAt))}
           </span>
         )}
       </div>
