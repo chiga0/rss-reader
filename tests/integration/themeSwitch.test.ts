@@ -35,7 +35,7 @@ describe('T132: Theme Switching Workflow Integration', () => {
     expect(result.current.theme).toBe('dark');
     expect(result.current.effectiveTheme).toBe('dark');
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(localStorage.getItem('theme')).toBe('dark');
+    expect(localStorage.getItem('rss-reader-theme')).toBe('dark');
 
     // Step 2: Switch to light
     act(() => {
@@ -45,7 +45,7 @@ describe('T132: Theme Switching Workflow Integration', () => {
     expect(result.current.theme).toBe('light');
     expect(result.current.effectiveTheme).toBe('light');
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(localStorage.getItem('theme')).toBe('light');
+    expect(localStorage.getItem('rss-reader-theme')).toBe('light');
 
     // Step 3: Switch back to system
     act(() => {
@@ -54,7 +54,7 @@ describe('T132: Theme Switching Workflow Integration', () => {
 
     expect(result.current.theme).toBe('system');
     expect(result.current.effectiveTheme).toBe('light'); // System is light
-    expect(localStorage.getItem('theme')).toBeNull();
+    expect(localStorage.getItem('rss-reader-theme')).toBeNull();
   });
 
   it('should persist theme across hook re-renders', () => {

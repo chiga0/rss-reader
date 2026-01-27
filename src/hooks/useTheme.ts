@@ -47,8 +47,12 @@ function applyTheme(theme: 'light' | 'dark'): void {
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
     // Load from localStorage
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    return stored || 'system';
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    // Validate stored value
+    if (stored === 'light' || stored === 'dark' || stored === 'system') {
+      return stored;
+    }
+    return 'system';
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {

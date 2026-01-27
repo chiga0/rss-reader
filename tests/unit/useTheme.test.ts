@@ -154,11 +154,11 @@ describe('useTheme', () => {
         result.current.setTheme('dark');
       });
 
-      expect(localStorage.getItem('theme')).toBe('dark');
+      expect(localStorage.getItem('rss-reader-theme')).toBe('dark');
     });
 
     it('should load theme preference from localStorage on mount', () => {
-      localStorage.setItem('theme', 'light');
+      localStorage.setItem('rss-reader-theme', 'light');
 
       const { result } = renderHook(() => useTheme());
 
@@ -167,7 +167,7 @@ describe('useTheme', () => {
     });
 
     it('should handle invalid localStorage values gracefully', () => {
-      localStorage.setItem('theme', 'invalid-theme');
+      localStorage.setItem('rss-reader-theme', 'invalid-theme');
 
       const { result } = renderHook(() => useTheme());
 
@@ -176,7 +176,7 @@ describe('useTheme', () => {
     });
 
     it('should clear localStorage when set to system', () => {
-      localStorage.setItem('theme', 'dark');
+      localStorage.setItem('rss-reader-theme', 'dark');
 
       const { result } = renderHook(() => useTheme());
 
@@ -184,7 +184,7 @@ describe('useTheme', () => {
         result.current.setTheme('system');
       });
 
-      expect(localStorage.getItem('theme')).toBeNull();
+      expect(localStorage.getItem('rss-reader-theme')).toBeNull();
     });
   });
 
