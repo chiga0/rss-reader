@@ -100,8 +100,9 @@ export default function Settings() {
             />
 
             <div className="mt-4">
-              <label className="flex items-center">
+              <label className="flex items-center" htmlFor="enable-background-sync">
                 <input
+                  id="enable-background-sync"
                   type="checkbox"
                   checked={settings.enableBackgroundSync}
                   onChange={handleToggleBackgroundSync}
@@ -132,8 +133,9 @@ export default function Settings() {
               通知
             </h2>
             
-            <label className="flex items-center">
+            <label className="flex items-center" htmlFor="enable-notifications">
               <input
+                id="enable-notifications"
                 type="checkbox"
                 checked={settings.enableNotifications}
                 onChange={handleToggleNotifications}

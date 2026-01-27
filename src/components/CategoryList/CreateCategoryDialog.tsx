@@ -45,7 +45,9 @@ export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogPr
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
+              <label htmlFor="category-name" className="sr-only">分类名称</label>
               <input
+                id="category-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}

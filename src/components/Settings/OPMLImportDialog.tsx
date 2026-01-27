@@ -51,7 +51,9 @@ export function OPMLImportDialog() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
+        <label htmlFor="opml-file-input" className="sr-only">选择OPML文件</label>
         <input
+          id="opml-file-input"
           ref={fileInputRef}
           type="file"
           accept=".opml,.xml"
