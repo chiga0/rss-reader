@@ -10,6 +10,7 @@ import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { CacheFirst, StaleWhileRevalidate, NetworkFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Precache app shell (injected by Vite)
 precacheAndRoute(self.__WB_MANIFEST);
@@ -39,6 +40,9 @@ registerRoute(
   new CacheFirst({
     cacheName: FEED_CACHE,
     plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
       new ExpirationPlugin({
         maxEntries: 100, // Max 100 feeds
         maxAgeSeconds: 7 * 24 * 60 * 60, // 7 days
@@ -57,6 +61,9 @@ registerRoute(
   new StaleWhileRevalidate({
     cacheName: IMAGE_CACHE,
     plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
       new ExpirationPlugin({
         maxEntries: 500, // Max 500 images
         maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
@@ -75,6 +82,9 @@ registerRoute(
   new NetworkFirst({
     cacheName: RUNTIME_CACHE,
     plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
       new ExpirationPlugin({
         maxEntries: 50,
         maxAgeSeconds: 5 * 60, // 5 minutes
