@@ -1,0 +1,30 @@
+# Performance and Security Headers
+# This file is compatible with Netlify, Cloudflare Pages, and similar hosting platforms
+
+/*
+  # Security Headers
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  
+  # Cache Control for static assets
+  Cache-Control: public, max-age=31536000, immutable
+
+/manifest.json
+  # Manifest should be cacheable but revalidated
+  Cache-Control: public, max-age=3600, must-revalidate
+  Content-Type: application/manifest+json
+
+/sw.js
+  # Service Worker should not be cached to ensure updates
+  Cache-Control: no-cache, no-store, must-revalidate
+  
+/index.html
+  # HTML should be revalidated frequently
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/*
+  # Static assets can be cached aggressively
+  Cache-Control: public, max-age=31536000, immutable
