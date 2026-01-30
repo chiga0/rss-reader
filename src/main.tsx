@@ -16,12 +16,23 @@ const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
     logger.info('New content available; please refresh');
-    // Show update notification to user
+    // Show update notification to user if permission is granted
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('更新可用', {
         body: '有新版本可用，请刷新页面获取最新内容',
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-192x192.png',
+      });
+    } else if ('Notification' in window && Notification.permission === 'default') {
+      // Optionally request permission for future notifications
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          new Notification('更新可用', {
+            body: '有新版本可用，请刷新页面获取最新内容',
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-192x192.png',
+          });
+        }
       });
     }
   },

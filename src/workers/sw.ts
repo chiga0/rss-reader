@@ -41,7 +41,7 @@ registerRoute(
     cacheName: FEED_CACHE,
     plugins: [
       new CacheableResponsePlugin({
-        statuses: [0, 200],
+        statuses: [200],
       }),
       new ExpirationPlugin({
         maxEntries: 100, // Max 100 feeds
@@ -62,7 +62,7 @@ registerRoute(
     cacheName: IMAGE_CACHE,
     plugins: [
       new CacheableResponsePlugin({
-        statuses: [0, 200],
+        statuses: [200],
       }),
       new ExpirationPlugin({
         maxEntries: 500, // Max 500 images
@@ -83,7 +83,7 @@ registerRoute(
     cacheName: RUNTIME_CACHE,
     plugins: [
       new CacheableResponsePlugin({
-        statuses: [0, 200],
+        statuses: [200],
       }),
       new ExpirationPlugin({
         maxEntries: 50,
