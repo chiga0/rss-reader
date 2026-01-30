@@ -64,7 +64,6 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'state-management': ['zustand'],
           'ui-components': ['lucide-react', 'dompurify'],
-          'workbox': ['workbox-precaching', 'workbox-routing', 'workbox-strategies'],
         },
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
