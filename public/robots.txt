@@ -1,0 +1,6 @@
+# RSS Reader - Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap (if you add one in the future)
+# Sitemap: https://yourdomain.com/sitemap.xml

@@ -1,12 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    
+    <!-- Icon and favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    
+    <!-- Viewport and display -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#1f1f23" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1f1f23" />
+    
+    <!-- SEO and App Info -->
     <meta name="description" content="Progressive Web App for RSS feed reading with offline support" />
+    <meta name="keywords" content="RSS, feed reader, offline reading, PWA, news aggregator" />
+    <meta name="author" content="RSS Reader Team" />
+    <meta name="application-name" content="RSS Reader" />
+    
+    <!-- Mobile Web App -->
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-title" content="RSS Reader">
+    
+    <!-- Apple iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RSS Reader" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -18,10 +36,114 @@
     <link rel="apple-touch-icon" sizes="144x144" href="/assets/apple-touch-icon-144x144.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/assets/apple-touch-icon-152x152.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon-180x180.png" />
+    
+    <!-- Manifest -->
     <link rel="manifest" href="/manifest.json" />
+    
     <title>RSS Reader - Feed Your Knowledge</title>
+    
+    <!-- Critical CSS for loading screen and initial layout -->
+    <style>
+      /* Critical CSS for initial loading */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      html, body {
+        width: 100%;
+        height: 100%;
+      }
+      
+      #root {
+        width: 100%;
+        height: 100%;
+      }
+      
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Loading screen to prevent white screen */
+      #app-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1f1f23;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+        overflow: hidden;
+      }
+      
+      #app-loading.light {
+        background: #ffffff;
+      }
+      
+      @media (prefers-color-scheme: light) {
+        #app-loading {
+          background: #ffffff;
+        }
+      }
+      
+      .loading-content {
+        text-align: center;
+      }
+      
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        border-top-color: #3b82f6;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+      }
+      
+      @media (prefers-color-scheme: light) {
+        .loading-spinner {
+          border-color: rgba(0, 0, 0, 0.1);
+          border-top-color: #3b82f6;
+        }
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+      }
+      
+      @media (prefers-color-scheme: light) {
+        .loading-text {
+          color: rgba(0, 0, 0, 0.6);
+        }
+      }
+      
+      #app-loading.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
+    <!-- Loading screen to prevent white screen -->
+    <div id="app-loading">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">加载中...</div>
+      </div>
+    </div>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

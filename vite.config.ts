@@ -46,18 +46,34 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     minify: 'terser',
+    cssMinify: 'lightningcss',
     terserOptions: {
       compress: {
         drop_console: true,
         drop_debugger: true,
+        passes: 2,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+      mangle: {
+        safari10: true,
       },
     },
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'zustand'],
+          'react-vendor': ['react', 'react-dom'],
+          'state-management': ['zustand'],
+          'ui-components': ['lucide-react', 'dompurify'],
         },
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
+    chunkSizeWarningLimit: 600,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'zustand'],
+    exclude: ['@fontsource-variable/noto-sans'],
   },
 });
