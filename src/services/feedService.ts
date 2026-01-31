@@ -8,7 +8,7 @@ import { parseFeed } from '@lib/rssParser';
 import { validateFeedURL, looksLikeFeed } from '@utils/validators';
 import { storage } from '@lib/storage';
 import type { Feed, Article } from '@models/Feed';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 
 // CORS proxy for development (bypasses browser CORS restrictions)
 // Production should use server-side proxy or Service Worker
@@ -89,7 +89,7 @@ export async function subscribeFeed(
 
   // Create Feed entity
   const feed: Feed = {
-    id: uuidv4(),
+    id: nanoid(),
     url: normalizedUrl,
     title: parsed.feed.title,
     description: parsed.feed.description || '',
@@ -106,7 +106,7 @@ export async function subscribeFeed(
 
   // Create Article entities
   const articles: Article[] = parsed.articles.map(a => ({
-    id: uuidv4(),
+    id: nanoid(),
     feedId: feed.id,
     title: a.title,
     summary: a.summary,
@@ -223,7 +223,7 @@ export async function fetchAndStoreArticles(feedId: string): Promise<Article[]> 
     const newArticles: Article[] = parsed.articles
       .filter(a => !existingLinks.has(a.link))
       .map(a => ({
-        id: uuidv4(),
+        id: nanoid(),
         feedId: feed.id,
         title: a.title,
         summary: a.summary,

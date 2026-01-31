@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { nanoid } from 'nanoid';
 import type { Feed, Article, Category, UserSettings, SyncState } from '@models/Feed';
 import {
   subscribeFeed as subscribeFeedService,
@@ -296,7 +297,7 @@ export const useStore = create<StoreState>()(
         try {
           const categories = get().categories;
           const newCategory: Category = {
-            id: crypto.randomUUID(),
+            id: nanoid(),
             name,
             order: categories.length,
             createdAt: new Date(),

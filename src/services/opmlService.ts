@@ -5,6 +5,7 @@
 
 import { logger } from '@lib/logger';
 import { storage } from '@lib/storage';
+import { nanoid } from 'nanoid';
 import type { Feed, Category } from '@models/Feed';
 
 export interface OPMLOutline {
@@ -127,7 +128,7 @@ export async function importFromOPML(
   for (const { category } of feedUrls) {
     if (category && !categoryMap.has(category) && !existingCategoryNames.has(category)) {
       const newCategory: Category = {
-        id: crypto.randomUUID(),
+        id: nanoid(),
         name: category,
         order: existingCategories.length + categoryMap.size,
         createdAt: new Date(),

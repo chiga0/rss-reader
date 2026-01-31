@@ -47,7 +47,7 @@ a:hover {
 button:focus,
 a:focus,
 input:focus {
-  outline: 2px solid var(--primary-color);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
