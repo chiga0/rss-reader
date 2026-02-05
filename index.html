@@ -42,6 +42,40 @@
     
     <title>RSS Reader - Feed Your Knowledge</title>
     
+    <!-- Theme initialization script - prevents FOUC (Flash of Unstyled Content) -->
+    <script>
+      (function() {
+        try {
+          const storedTheme = localStorage.getItem('theme');
+          let theme = 'light';
+          
+          if (storedTheme === 'light' || storedTheme === 'dark') {
+            theme = storedTheme;
+          } else {
+            // Use system preference for 'system' mode or if no stored value
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          
+          // Apply theme class immediately
+          document.documentElement.classList.add(theme);
+          
+          // Update meta theme-color
+          const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+          if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', theme === 'dark' ? '#000000' : '#ffffff');
+          }
+          
+          // Update loading screen
+          const loadingElement = document.getElementById('app-loading');
+          if (loadingElement && theme === 'light') {
+            loadingElement.classList.add('light');
+          }
+        } catch (e) {
+          // Silently fail in case of error
+        }
+      })();
+    </script>
+    
     <!-- Critical CSS for loading screen and initial layout -->
     <style>
       /* Critical CSS for initial loading */

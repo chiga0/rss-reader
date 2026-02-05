@@ -5,18 +5,15 @@ import './styles/globals.css';
 import { logger } from '@lib/logger';
 import { registerSW } from 'virtual:pwa-register';
 
-// Log application startup
 logger.info('Application starting', {
   version: import.meta.env.VITE_APP_VERSION || '1.0.0',
   environment: import.meta.env.MODE,
 });
 
-// Register Service Worker with Workbox
 const updateSW = registerSW({
   immediate: true,
   onNeedRefresh() {
     logger.info('New content available; please refresh');
-    // Show update notification only if permission is already granted
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('更新可用', {
         body: '有新版本可用，请刷新页面获取最新内容',
@@ -36,10 +33,8 @@ const updateSW = registerSW({
   },
 });
 
-// Make updateSW available globally for manual updates
 (window as any).__updateSW = updateSW;
 
-// Hide loading screen when React app renders
 function hideLoadingScreen() {
   const loadingElement = document.getElementById('app-loading');
   if (loadingElement) {
@@ -50,15 +45,20 @@ function hideLoadingScreen() {
   }
 }
 
-// Enable React StrictMode for development
-const root = ReactDOM.createRoot(document.getElementById('root')!);
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+
+const root = ReactDOM.createRoot(rootElement);
+
 root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
+  </React.StrictMode>
 );
 
-// Use requestAnimationFrame to ensure DOM is ready before hiding loading screen
 requestAnimationFrame(() => {
   requestAnimationFrame(() => {
     hideLoadingScreen();

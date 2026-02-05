@@ -1,0 +1,723 @@
+# Implementation Plan: Replace Global Components with Shadcn UI
+
+**Branch**: `001-replace-global-components` | **Date**: 2026-02-05 | **Spec**: [spec.md](./spec.md)  
+**Input**: Feature specification from `/specs/001-replace-global-components/spec.md`
+
+**Note**: This plan follows the `.specify/templates/plan-template.md` structure and is executed via the specification workflow.
+
+## Summary
+
+Replace the RSS Reader's global UI components with Shadcn UI components, prioritizing the navigation bar. The implementation will adopt a mobile-first responsive design approach, support automatic light/dark theme adaptation, integrate React Router for client-side routing, and achieve ≥90% unit test coverage for all new/modified code. This enhancement maintains all existing RSS reader functionality while modernizing the UI layer with a battle-tested component library.
+
+**Primary Deliverables**:
+- Shadcn UI-based navigation system (mobile-responsive with burger menu for mobile, horizontal nav for desktop)
+- React Router integration for `/feeds`, `/feeds/:id`, `/articles/:id`, `/favorites`, `/history`, `/settings` routes
+- Theme system with automatic system detection and manual toggle
+- Comprehensive test suite (unit/integration/e2e) with ≥90% coverage
+- Zero functional regressions to existing feed reading capabilities
+
+## Technical Context
+
+**Language/Version**: TypeScript 5.7.2 (strict mode enabled via tsconfig.json)  
+**Primary Dependencies**: 
+- React 18.3.1 (existing)
+- Vite 7.3.1 (existing build tool)
+- Tailwind CSS 4.1.18 (existing styling system)
+- **NEW**: Shadcn UI components (via CLI installation)
+- **NEW**: React Router v6 (latest stable for client routing)
+- Zustand 4.5.5 (existing state management)
+- Lucide React 0.563.0 (existing icons, compatible with Shadcn)
+
+**Storage**: IndexedDB (existing via `@lib/storage`) + Workbox for offline caching  
+**Testing**: 
+- Vitest 4.0.18 (unit tests)
+- @testing-library/react 16.0.1 (component tests)
+- Playwright 1.48.2 (e2e tests)
+- MSW 2.12.7 (API mocking)
+- @vitest/coverage-v8 (coverage reporting)
+
+**Target Platform**: Progressive Web App (PWA) targeting:
+- Web browsers (Chrome/Firefox/Safari latest 2 versions)
+- Android 10+ (installable PWA)
+- iOS 14+ (installable PWA with Safari limitations)
+
+**Project Type**: Single-page PWA with client-side routing  
+**Performance Goals**: 
+- First Contentful Paint (FCP) < 1.5s on 3G
+- Time to Interactive (TTI) < 3.5s on 3G
+- Lighthouse PWA score ≥ 90
+
+**Constraints**: 
+- Mobile-first viewport breakpoints: 375px (mobile), 768px (tablet), 1024px (desktop)
+- Navigation must be accessible via keyboard and screen readers (WCAG 2.1 AA)
+- Theme switching must not cause layout shift or flash of unstyled content (FOUC)
+- All existing IndexedDB data structures and stores must remain compatible
+
+**Scale/Scope**: 
+- ~15 existing components to audit/replace/wrap
+- 6 new routes to implement
+- ~10-15 Shadcn UI components to install (Button, Card, Dialog, Sheet, Tabs, Dropdown Menu, etc.)
+- Target: 20-30 new test files covering routing, theming, and component behavior
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
+**Constitution Version**: 1.0.0 (RSS Reader PWA Constitution)
+
+### Initial Check (Pre-Research)
+
+- [x] **Principle I (PWA Architecture)**: Feature maintains PWA capabilities; responsive navigation supports web/Android/iOS. No breaking changes to service worker or manifest.
+- [x] **Principle II (Test-First)**: Feature spec mandates ≥90% coverage for new code; TDD workflow will be enforced for Shadcn components and routing logic.
+- [x] **Principle III (Responsive Design)**: Spec explicitly requires mobile-first design with testing at 375px, 768px, 1024px breakpoints. User Story 1 validates this.
+- [x] **Principle IV (Modern Tech)**: Using TypeScript 5.7.2, React 18.3.1, Vite 7.3.1 (all current stable). React Router v6 is the industry standard. No deprecated dependencies introduced.
+- [x] **Principle V (Observability)**: Existing logger (`@lib/logger`) will instrument route changes, theme switches, and component errors. No observability regressions.
+
+**Gate Status**: ✅ **PASS** - All constitutional principles are satisfied. No violations to justify.
+
+### Post-Design Check
+
+*To be re-evaluated after Phase 1 (design artifacts) completion.*
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/001-replace-global-components/
+├── plan.md              # This file (Phase 0-1 planning)
+├── research.md          # Phase 0: Technology evaluation and decisions
+├── data-model.md        # Phase 1: Route and navigation state models
+├── quickstart.md        # Phase 1: Developer setup guide for routing/Shadcn
+├── contracts/           # Phase 1: Route definitions and component APIs
+│   ├── routes.yaml      # Client-side route definitions
+│   └── navigation.ts    # Navigation component interface
+└── tasks.md             # Phase 2: Generated by /speckit.tasks (NOT this command)
+```
+
+### Source Code (repository root)
+
+```text
+src/
+├── components/
+│   ├── ui/                        # NEW: Shadcn UI components (installed via CLI)
+│   │   ├── button.tsx             # Shadcn Button primitive
+│   │   ├── card.tsx               # Shadcn Card primitive
+│   │   ├── dialog.tsx             # Shadcn Dialog primitive
+│   │   ├── sheet.tsx              # Shadcn Sheet (mobile drawer)
+│   │   ├── tabs.tsx               # Shadcn Tabs
+│   │   ├── dropdown-menu.tsx      # Shadcn Dropdown Menu
+│   │   ├── navigation-menu.tsx    # Shadcn Navigation Menu
+│   │   └── ...                    # Additional primitives as needed
+│   ├── layout/                    # NEW: Layout components with Shadcn
+│   │   ├── AppLayout.tsx          # Root layout with routing
+│   │   ├── Navbar.tsx             # NEW Shadcn-based navigation bar
+│   │   ├── MobileNav.tsx          # NEW Mobile burger menu (Sheet)
+│   │   ├── DesktopNav.tsx         # NEW Desktop horizontal nav
+│   │   └── ThemeToggle.tsx        # NEW Theme switcher component
+│   ├── AddFeedDialog/             # EXISTING (may wrap with Shadcn Dialog)
+│   ├── ArticleList/               # EXISTING (may use Shadcn Card)
+│   ├── ArticleView/               # EXISTING
+│   ├── CategoryList/              # EXISTING
+│   ├── Common/                    # EXISTING (ErrorMessage, OfflineIndicator, LoadingSpinner)
+│   ├── FeedList/                  # EXISTING (may use Shadcn Card)
+│   └── Settings/                  # EXISTING
+│
+├── pages/                         # EXISTING page components
+│   ├── FeedsPage.tsx              # NEW: Route wrapper for FeedList
+│   ├── FeedDetailPage.tsx         # NEW: Route wrapper for feed/:id
+│   ├── ArticleDetailPage.tsx      # NEW: Route wrapper for article/:id
+│   ├── Favorites.tsx              # EXISTING (already a page)
+│   ├── History.tsx                # EXISTING (already a page)
+│   └── Settings.tsx               # EXISTING (already a page)
+│
+├── hooks/
+│   ├── useTheme.ts                # EXISTING (may enhance for Shadcn dark mode)
+│   ├── useStore.ts                # EXISTING (Zustand store)
+│   ├── useOfflineDetection.ts     # EXISTING
+│   └── useRouteTitle.ts           # NEW: Hook for dynamic route-based titles
+│
+├── lib/
+│   ├── router/                    # NEW: React Router configuration
+│   │   ├── routes.tsx             # Route definitions and lazy loading
+│   │   ├── routeConfig.ts         # Route metadata (titles, guards)
+│   │   └── RouterProvider.tsx     # Router context provider
+│   ├── theme/                     # NEW: Theme utilities for Shadcn
+│   │   ├── ThemeProvider.tsx      # Theme context provider
+│   │   └── themeUtils.ts          # System theme detection helpers
+│   ├── logger.ts                  # EXISTING
+│   ├── storage.ts                 # EXISTING
+│   └── utils.ts                   # EXISTING (may add Shadcn utilities)
+│
+├── models/                        # EXISTING (Feed, Article, Subscription types)
+├── services/                      # EXISTING (syncService, cacheService)
+├── styles/
+│   ├── index.css                  # EXISTING (Tailwind imports + CSS vars for Shadcn)
+│   └── themes.css                 # NEW: Shadcn dark/light theme variables
+│
+├── types/
+│   ├── navigation.ts              # NEW: Navigation and route types
+│   └── ...                        # EXISTING types
+│
+├── utils/                         # EXISTING
+├── workers/                       # EXISTING (Service Worker)
+├── App.tsx                        # MODIFIED: Wrap with Router and ThemeProvider
+└── main.tsx                       # EXISTING (entry point)
+
+tests/
+├── unit/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── Navbar.test.tsx            # NEW: Navbar unit tests
+│   │   │   ├── MobileNav.test.tsx         # NEW: Mobile nav tests
+│   │   │   ├── DesktopNav.test.tsx        # NEW: Desktop nav tests
+│   │   │   └── ThemeToggle.test.tsx       # NEW: Theme toggle tests
+│   │   └── ...                            # EXISTING component tests
+│   ├── hooks/
+│   │   └── useRouteTitle.test.ts          # NEW: Route title hook tests
+│   └── lib/
+│       ├── router/
+│       │   └── routeConfig.test.ts        # NEW: Route configuration tests
+│       └── theme/
+│           └── themeUtils.test.ts         # NEW: Theme utility tests
+│
+├── integration/
+│   ├── navigation/
+│   │   ├── routing.test.tsx               # NEW: React Router integration tests
+│   │   ├── theme-switching.test.tsx       # NEW: Theme switch integration
+│   │   └── route-navigation.test.tsx      # NEW: Navigation flow tests
+│   └── ...                                # EXISTING integration tests
+│
+└── e2e/
+    ├── navigation.spec.ts                 # NEW: E2E navigation flows
+    ├── routing.spec.ts                    # NEW: E2E deep linking and back/forward
+    ├── theme.spec.ts                      # NEW: E2E theme switching
+    ├── mobile-navigation.spec.ts          # NEW: E2E mobile burger menu
+    └── ...                                # EXISTING e2e tests
+
+public/
+├── manifest.json                          # EXISTING (may update theme_color)
+└── ...                                    # EXISTING PWA assets
+```
+
+**Structure Decision**: 
+
+The project uses the standard PWA web application structure already established in the codebase. Key additions:
+
+1. **`src/components/ui/`**: New directory for Shadcn UI primitives installed via `npx shadcn-ui@latest add`. This follows Shadcn's convention and keeps primitives separate from app components.
+
+2. **`src/components/layout/`**: New directory for layout-specific components (Navbar, MobileNav, DesktopNav, ThemeToggle) that compose Shadcn primitives. This separation clarifies that these are structural components, not content components.
+
+3. **`src/lib/router/`**: Centralized routing configuration following React Router v6 best practices (data routers, lazy loading, route metadata). Keeps routing concerns isolated from component logic.
+
+4. **`src/lib/theme/`**: Theme system integration for Shadcn's dark mode using CSS custom properties. This extends the existing `useTheme` hook with Shadcn-specific utilities.
+
+5. **Existing components in `src/components/`** will be gradually wrapped or enhanced with Shadcn primitives (e.g., `AddFeedDialog` uses Shadcn `Dialog`, `FeedCard` uses Shadcn `Card`). No full rewrites—progressive enhancement.
+
+6. **Page components** in `src/pages/` remain but will be wrapped in route wrappers that handle route params and titles. Existing pages like `Settings`, `Favorites`, `History` are already structured correctly.
+
+7. **Test structure mirrors source structure**: Each new component/hook/lib module gets corresponding unit tests. Integration tests cover cross-component flows. E2E tests validate user journeys across breakpoints.
+
+## Complexity Tracking
+
+> **Fill ONLY if Constitution Check has violations that must be justified**
+
+*No violations detected. This section is intentionally left empty.*
+
+---
+
+## Phase 0: Research & Technology Evaluation
+
+**Objective**: Resolve all "NEEDS CLARIFICATION" items from Technical Context and validate technology choices.
+
+### Research Tasks
+
+1. **React Router v6 Architecture Decision**
+   - Research: Evaluate React Router v6 data routers (`createBrowserRouter`) vs. `BrowserRouter` for PWA offline support
+   - Research: Compatibility with service workers and offline-first architecture
+   - Output: Document chosen router API and rationale in `research.md`
+
+2. **Shadcn UI PWA Integration**
+   - Research: Verify Shadcn UI components work with Tailwind v4.x (project uses 4.1.18)
+   - Research: Evaluate which Shadcn components are needed for navigation (Sheet for mobile, Navigation Menu for desktop, Dropdown Menu for user actions)
+   - Research: Identify any Shadcn components that conflict with existing custom components
+   - Output: Component inventory and installation checklist in `research.md`
+
+3. **Theme System Architecture**
+   - Research: Best practices for Shadcn dark mode with Tailwind v4 (CSS vars vs. class strategy)
+   - Research: Integration with existing `useTheme` hook and PWA manifest `theme_color`
+   - Research: Avoiding FOUC (Flash of Unstyled Content) during theme initialization
+   - Output: Theme provider architecture decision in `research.md`
+
+4. **Mobile-First Navigation Patterns**
+   - Research: Best practices for burger menu vs. bottom navigation on mobile PWAs
+   - Research: Shadcn Sheet component for mobile drawer vs. Radix Dialog
+   - Research: Touch gesture support and smooth animations on mobile
+   - Output: Navigation UX pattern decision (burger menu in header vs. bottom tab bar) in `research.md`
+
+5. **Testing Strategy for Routing and Theming**
+   - Research: Vitest mocking strategies for React Router (MemoryRouter for unit tests)
+   - Research: Testing theme changes without flakiness (CSS variable injection in JSDOM)
+   - Research: Playwright viewport testing for 375px/768px/1024px breakpoints
+   - Output: Test architecture and mocking patterns in `research.md`
+
+6. **Migration Strategy for Existing Components**
+   - Research: Progressive enhancement approach (wrap vs. rewrite existing components)
+   - Research: Identify which components can reuse Shadcn primitives immediately (Button, Card, Dialog)
+   - Research: Risk analysis for breaking changes to existing component APIs
+   - Output: Migration plan and risk assessment in `research.md`
+
+### Expected Outputs
+
+**File**: `specs/001-replace-global-components/research.md`
+
+**Structure**:
+```markdown
+# Research: Replace Global Components with Shadcn UI
+
+## Decision 1: React Router Architecture (Data Router vs BrowserRouter)
+- **Decision**: [Chosen approach]
+- **Rationale**: [Why this approach fits PWA offline requirements]
+- **Alternatives Considered**: [Other router patterns evaluated]
+- **Implementation Notes**: [Code organization and route definition patterns]
+
+## Decision 2: Shadcn UI Component Selection
+- **Decision**: [List of components to install via CLI]
+- **Rationale**: [Why these components cover navigation and theme switching needs]
+- **Alternatives Considered**: [Other UI libraries or custom implementations]
+- **Implementation Notes**: [Installation commands and customization approach]
+
+## Decision 3: Theme System Integration
+- **Decision**: [CSS variable strategy for dark/light themes]
+- **Rationale**: [How this integrates with existing Tailwind and useTheme hook]
+- **Alternatives Considered**: [Class-based theming, context-only approach]
+- **Implementation Notes**: [Theme provider hierarchy and localStorage persistence]
+
+## Decision 4: Mobile Navigation Pattern
+- **Decision**: [Burger menu with Sheet component vs bottom navigation]
+- **Rationale**: [UX considerations for mobile-first RSS reader]
+- **Alternatives Considered**: [Bottom tab bar, side drawer, other patterns]
+- **Implementation Notes**: [Breakpoint thresholds and responsive behavior]
+
+## Decision 5: Testing Approach
+- **Decision**: [Vitest + Testing Library + Playwright strategy]
+- **Rationale**: [How to achieve ≥90% coverage with router and theme mocking]
+- **Alternatives Considered**: [Other testing libraries or approaches]
+- **Implementation Notes**: [Mock setup, coverage configuration, CI integration]
+
+## Decision 6: Migration Strategy
+- **Decision**: [Progressive enhancement approach for existing components]
+- **Rationale**: [Minimize risk while modernizing UI layer]
+- **Alternatives Considered**: [Big-bang rewrite, feature flag rollout]
+- **Implementation Notes**: [Component priority order and API compatibility plan]
+```
+
+---
+
+## Phase 1: Design & Contracts
+
+**Prerequisites**: `research.md` complete with all decisions documented
+
+### Deliverable 1: Data Model (`data-model.md`)
+
+**Entities to Define**:
+
+1. **Route**
+   - **Attributes**: `path` (string), `element` (React component), `loader` (optional async function), `handle` (metadata object with title, icon, requiresAuth)
+   - **Relationships**: Routes can have child routes (nested layouts); routes reference page components
+   - **Validation**: Path must follow React Router v6 pattern syntax; loader must return serializable data
+   - **State Transitions**: Routes load → page component renders → route metadata updates document title
+
+2. **Navigation Item**
+   - **Attributes**: `id` (string), `label` (string), `icon` (Lucide icon name), `path` (route path), `badge` (optional number for unread counts), `isActive` (computed boolean)
+   - **Relationships**: Navigation items map 1:1 to routes; items can be grouped (e.g., "Main", "User")
+   - **Validation**: Label must be i18n-ready; icon must exist in Lucide React
+   - **State Transitions**: User clicks item → router navigates → item becomes active → other items become inactive
+
+3. **Theme Preference**
+   - **Attributes**: `mode` ('light' | 'dark' | 'system'), `systemPreference` (computed from media query), `resolvedTheme` (computed effective theme)
+   - **Relationships**: Theme affects all Shadcn components via CSS custom properties; syncs to localStorage and PWA manifest theme_color
+   - **Validation**: Mode must be one of three allowed values
+   - **State Transitions**: System detects theme → user toggles theme → CSS vars update → components re-render with new theme
+
+4. **Navigation State**
+   - **Attributes**: `isOpen` (boolean for mobile drawer), `activeRoute` (current route path), `history` (array of visited routes), `canGoBack` (computed boolean)
+   - **Relationships**: State managed by Zustand store; syncs with React Router navigation state
+   - **Validation**: activeRoute must match existing route definition
+   - **State Transitions**: User opens mobile nav → isOpen=true → user selects item → router navigates → isOpen=false
+
+**File Output**: `specs/001-replace-global-components/data-model.md`
+
+### Deliverable 2: API Contracts (`contracts/`)
+
+**File 1**: `contracts/routes.yaml`
+
+```yaml
+# Client-Side Route Definitions
+routes:
+  - path: "/"
+    redirect: "/feeds"
+    description: "Root redirects to feeds list"
+
+  - path: "/feeds"
+    component: "FeedsPage"
+    loader: "loadFeedsData"
+    meta:
+      title: "Feeds"
+      icon: "rss"
+      showInNav: true
+    description: "List all subscribed RSS feeds"
+
+  - path: "/feeds/:feedId"
+    component: "FeedDetailPage"
+    loader: "loadFeedDetail"
+    meta:
+      title: "Feed - {feedTitle}"
+      icon: "newspaper"
+      showInNav: false
+    description: "View articles from a specific feed"
+
+  - path: "/articles/:articleId"
+    component: "ArticleDetailPage"
+    loader: "loadArticleDetail"
+    meta:
+      title: "Article - {articleTitle}"
+      icon: "file-text"
+      showInNav: false
+    description: "View full article content"
+
+  - path: "/favorites"
+    component: "FavoritesPage"
+    meta:
+      title: "Favorites"
+      icon: "star"
+      showInNav: true
+    description: "View favorited articles"
+
+  - path: "/history"
+    component: "HistoryPage"
+    meta:
+      title: "History"
+      icon: "clock"
+      showInNav: true
+    description: "View reading history"
+
+  - path: "/settings"
+    component: "Settings"
+    meta:
+      title: "Settings"
+      icon: "settings"
+      showInNav: true
+    description: "App settings and preferences"
+
+  - path: "*"
+    component: "NotFoundPage"
+    meta:
+      title: "Not Found"
+      icon: "alert-circle"
+      showInNav: false
+    description: "404 fallback for invalid routes"
+```
+
+**File 2**: `contracts/navigation.ts`
+
+```typescript
+/**
+ * Navigation Component API Contract
+ * 
+ * Defines the interface for Navbar, MobileNav, and DesktopNav components
+ */
+
+export interface NavigationItem {
+  id: string;
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  badge?: number;
+  group?: 'main' | 'user';
+}
+
+export interface NavbarProps {
+  /**
+   * Array of navigation items to display
+   * Items will be filtered based on viewport (mobile shows in Sheet, desktop shows inline)
+   */
+  items: NavigationItem[];
+  
+  /**
+   * Current active route path (managed by React Router)
+   * Used to highlight active navigation item
+   */
+  currentPath: string;
+  
+  /**
+   * Callback when navigation item is clicked
+   * Should integrate with React Router's navigate() function
+   */
+  onNavigate: (path: string) => void;
+  
+  /**
+   * Optional user profile section (avatar, name, logout)
+   * Displayed in dropdown menu or mobile sheet footer
+   */
+  userSection?: React.ReactNode;
+  
+  /**
+   * Optional additional actions (e.g., Add Feed button)
+   * Displayed next to theme toggle
+   */
+  actions?: React.ReactNode;
+}
+
+export interface ThemeToggleProps {
+  /**
+   * Current theme mode (managed by ThemeProvider)
+   */
+  mode: 'light' | 'dark' | 'system';
+  
+  /**
+   * Callback when theme is toggled
+   * Should update both context and localStorage
+   */
+  onToggle: (mode: 'light' | 'dark' | 'system') => void;
+  
+  /**
+   * Optional: Display theme label on desktop
+   * Default: icon only
+   */
+  showLabel?: boolean;
+}
+
+export interface MobileNavProps {
+  /**
+   * Navigation items (same as Navbar)
+   */
+  items: NavigationItem[];
+  
+  /**
+   * Whether mobile drawer is open
+   * Controlled by parent component (AppLayout)
+   */
+  isOpen: boolean;
+  
+  /**
+   * Callback to close drawer
+   * Should set isOpen state to false
+   */
+  onClose: () => void;
+  
+  /**
+   * Same navigation callback as Navbar
+   */
+  onNavigate: (path: string) => void;
+  
+  /**
+   * Current active route path
+   */
+  currentPath: string;
+  
+  /**
+   * Optional footer content (user profile, app version)
+   */
+  footer?: React.ReactNode;
+}
+
+export interface DesktopNavProps {
+  /**
+   * Navigation items (same as Navbar)
+   */
+  items: NavigationItem[];
+  
+  /**
+   * Same navigation callback
+   */
+  onNavigate: (path: string) => void;
+  
+  /**
+   * Current active route path
+   */
+  currentPath: string;
+}
+
+/**
+ * Expected component signatures:
+ * 
+ * export function Navbar(props: NavbarProps): JSX.Element
+ * export function MobileNav(props: MobileNavProps): JSX.Element
+ * export function DesktopNav(props: DesktopNavProps): JSX.Element
+ * export function ThemeToggle(props: ThemeToggleProps): JSX.Element
+ */
+```
+
+### Deliverable 3: Developer Quickstart (`quickstart.md`)
+
+**File Output**: `specs/001-replace-global-components/quickstart.md`
+
+**Content Outline**:
+```markdown
+# Developer Quickstart: Shadcn UI + React Router Integration
+
+## Prerequisites
+- Node.js 18+
+- npm or pnpm
+- Existing RSS Reader project cloned
+
+## Installation Steps
+
+### 1. Install React Router v6
+\```bash
+npm install react-router-dom@^6
+npm install -D @types/react-router-dom
+\```
+
+### 2. Install Shadcn UI Components
+\```bash
+# Initialize Shadcn UI (if not already done)
+npx shadcn-ui@latest init
+
+# Install required components
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add card
+npx shadcn-ui@latest add dialog
+npx shadcn-ui@latest add sheet
+npx shadcn-ui@latest add dropdown-menu
+npx shadcn-ui@latest add navigation-menu
+npx shadcn-ui@latest add tabs
+npx shadcn-ui@latest add avatar
+npx shadcn-ui@latest add badge
+\```
+
+### 3. Configure Theme System
+\```bash
+# Theme CSS variables are added to src/styles/index.css by shadcn init
+# Ensure dark mode is configured in tailwind.config (if not using v4 default)
+\```
+
+### 4. Update Vite Config for Path Aliases
+\```typescript
+// vite.config.ts - ensure these aliases exist:
+{
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@components': path.resolve(__dirname, './src/components'),
+      '@lib': path.resolve(__dirname, './src/lib'),
+      '@hooks': path.resolve(__dirname, './src/hooks'),
+      '@pages': path.resolve(__dirname, './src/pages'),
+    },
+  },
+}
+\```
+
+### 5. Run Development Server
+\```bash
+npm run dev
+# App should now use new routing and Shadcn components
+\```
+
+## Testing Setup
+
+### Run Unit Tests
+\```bash
+npm run test              # Watch mode
+npm run test:run          # Run once
+npm run test:coverage     # With coverage report
+\```
+
+### Run E2E Tests
+\```bash
+npm run test:e2e          # Headless mode
+npm run test:e2e:ui       # Interactive UI mode
+\```
+
+## Key Files to Review
+
+- `src/App.tsx` - Router and Theme provider wrappers
+- `src/lib/router/routes.tsx` - Route definitions
+- `src/components/layout/Navbar.tsx` - Main navigation component
+- `src/lib/theme/ThemeProvider.tsx` - Theme context
+
+## Development Workflow
+
+1. **Create a new route**:
+   - Add route definition in `src/lib/router/routes.tsx`
+   - Create page component in `src/pages/`
+   - Add navigation item to `navigationItems` array
+   - Write unit tests for page component
+   - Write e2e test for route navigation
+
+2. **Add a new Shadcn component**:
+   - Run `npx shadcn-ui@latest add <component-name>`
+   - Component appears in `src/components/ui/`
+   - Import and use in your feature component
+   - No additional configuration needed (theme works automatically)
+
+3. **Test theme switching**:
+   - Use `ThemeToggle` component in nav
+   - Theme persists to localStorage
+   - PWA manifest theme_color updates dynamically
+
+## Troubleshooting
+
+- **Router not updating**: Check React Router version is v6.x
+- **Theme not applying**: Verify CSS vars are loaded in index.css
+- **Shadcn components not styled**: Ensure tailwind.config points to src/components/ui
+- **Tests failing**: Check Vitest setup includes router mocking (MemoryRouter)
+```
+
+### Deliverable 4: Update Agent Context
+
+After generating the above artifacts, run the agent context update script to add new technologies:
+
+```bash
+.specify/scripts/bash/update-agent-context.sh copilot
+```
+
+This will update `.github/copilot-instructions.md` (or equivalent agent file) with:
+- React Router v6 routing patterns
+- Shadcn UI component usage guidelines
+- Theme provider integration patterns
+- Testing strategies for routing and theming
+
+---
+
+## Phase 2: Planning Complete
+
+**This command stops here.** The next steps (task generation and implementation) are handled by separate commands:
+- **Task Generation**: Run `/speckit.tasks` to generate `tasks.md` from the design artifacts
+- **Implementation**: Run `/speckit.implement` to execute tasks
+
+---
+
+## Post-Phase 1 Constitution Re-Check
+
+*To be filled after Phase 1 design artifacts are complete.*
+
+- [ ] **Principle I (PWA Architecture)**: Verify routes support offline navigation and service worker integration
+- [ ] **Principle II (Test-First)**: Confirm test-first approach is documented in tasks; coverage target ≥90%
+- [ ] **Principle III (Responsive Design)**: Verify navigation design includes mobile (Sheet), tablet, desktop (horizontal) breakpoints
+- [ ] **Principle IV (Modern Tech)**: Confirm React Router v6 and Shadcn UI are latest stable versions; no deprecated APIs used
+- [ ] **Principle V (Observability)**: Ensure route transitions and theme changes are logged via existing logger
+
+**Final Gate**: ✅ / ❌ (to be determined after Phase 1)
+
+---
+
+## Summary of Artifacts Generated by This Plan
+
+1. ✅ **plan.md** (this file): Complete implementation plan with architecture, structure, and phase breakdown
+2. ⏳ **research.md**: Phase 0 output with technology decisions (to be generated by research workflow)
+3. ⏳ **data-model.md**: Phase 1 output with entity definitions (to be generated by design workflow)
+4. ⏳ **contracts/routes.yaml**: Phase 1 route API contract (to be generated by design workflow)
+5. ⏳ **contracts/navigation.ts**: Phase 1 navigation component interface (to be generated by design workflow)
+6. ⏳ **quickstart.md**: Phase 1 developer setup guide (to be generated by design workflow)
+7. ⏳ **Agent context update**: Phase 1 update to `.github/copilot-instructions.md` (to be generated by script)
+8. ⏳ **tasks.md**: Phase 2 output (generated by separate `/speckit.tasks` command)
+
+**Next Command**: Continue with Phase 0 research by executing the research tasks defined above, or use `/speckit.plan` workflow to auto-generate `research.md`.
+
+---
+
+**Plan Version**: 1.0.0  
+**Author**: Specification Workflow  
+**Last Updated**: 2026-02-05
