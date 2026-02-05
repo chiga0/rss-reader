@@ -4,6 +4,7 @@
  */
 
 import 'fake-indexeddb/auto';
+import '@testing-library/jest-dom/vitest';
 import { expect, afterEach, vi, beforeAll, afterAll } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import { setupServer } from 'msw/node';
