@@ -1,0 +1,366 @@
+# Client-Side Route Definitions
+# ============================================================================
+# This file defines all client-side routes for the RSS Reader application
+# after React Router v6 integration.
+#
+# Format: YAML
+# Usage: Reference this file when implementing src/lib/router/routes.tsx
+# ============================================================================
+
+version: "1.0.0"
+last_updated: "2026-02-05"
+
+# Root route - redirects to feeds
+root:
+  path: "/"
+  redirect: "/feeds"
+  description: "Root path redirects to feeds list"
+  index: true
+
+# Main application routes
+routes:
+  # Feeds list - main landing page
+  - id: "feeds"
+    path: "/feeds"
+    component: "FeedsPage"
+    loader: "loadFeedsData"
+    meta:
+      title: "Feeds"
+      icon: "rss"
+      showInNav: true
+      navOrder: 1
+      group: "main"
+    description: "List all subscribed RSS feeds with unread counts"
+    loaderBehavior: |
+      Loads all feeds from IndexedDB. On failure or offline mode,
+      returns cached data with isOffline flag. Never throws error.
+    
+  # Feed detail - articles from a specific feed
+  - id: "feed-detail"
+    path: "/feeds/:feedId"
+    component: "FeedDetailPage"
+    loader: "loadFeedDetail"
+    meta:
+      title: "Feed - {feedTitle}"
+      icon: "newspaper"
+      showInNav: false
+    description: "View articles from a specific RSS feed"
+    params:
+      feedId:
+        type: "string"
+        pattern: "^[a-zA-Z0-9-_]+$"
+        required: true
+        description: "Unique feed identifier (UUID or slug)"
+    loaderBehavior: |
+      Loads feed metadata and associated articles from IndexedDB.
+      Returns 404 error if feedId not found. Offline mode returns
+      cached articles with isOffline flag.
+    errorHandling:
+      - code: 404
+        message: "Feed not found"
+        action: "Redirect to /feeds with error toast"
+      - code: 500
+        message: "Failed to load feed"
+        action: "Show error boundary with retry button"
+
+  # Article detail - full article view
+  - id: "article-detail"
+    path: "/articles/:articleId"
+    component: "ArticleDetailPage"
+    loader: "loadArticleDetail"
+    meta:
+      title: "Article - {articleTitle}"
+      icon: "file-text"
+      showInNav: false
+    description: "View full article content with formatting"
+    params:
+      articleId:
+        type: "string"
+        pattern: "^[a-zA-Z0-9-_]+$"
+        required: true
+        description: "Unique article identifier (UUID or content hash)"
+    loaderBehavior: |
+      Loads article content from IndexedDB. Marks article as read in history.
+      Returns 404 if articleId not found. Offline mode returns cached content.
+    errorHandling:
+      - code: 404
+        message: "Article not found"
+        action: "Redirect to /feeds with error toast"
+
+  # Favorites - bookmarked articles
+  - id: "favorites"
+    path: "/favorites"
+    component: "FavoritesPage"
+    loader: null
+    meta:
+      title: "Favorites"
+      icon: "star"
+      showInNav: true
+      navOrder: 2
+      group: "main"
+    description: "View all articles marked as favorites"
+    loaderBehavior: "No loader; component fetches favorites via useStore hook"
+
+  # History - recently read articles
+  - id: "history"
+    path: "/history"
+    component: "HistoryPage"
+    loader: null
+    meta:
+      title: "History"
+      icon: "clock"
+      showInNav: true
+      navOrder: 3
+      group: "main"
+    description: "View reading history (last 100 articles)"
+    loaderBehavior: "No loader; component fetches history via useStore hook"
+
+  # Settings - app configuration
+  - id: "settings"
+    path: "/settings"
+    component: "Settings"
+    loader: null
+    meta:
+      title: "Settings"
+      icon: "settings"
+      showInNav: true
+      navOrder: 4
+      group: "user"
+    description: "Configure app settings (theme, refresh interval, OPML import/export)"
+    loaderBehavior: "No loader; component fetches settings via storage.get('settings', 'default')"
+
+  # 404 Not Found - catch-all route
+  - id: "not-found"
+    path: "*"
+    component: "NotFoundPage"
+    loader: null
+    meta:
+      title: "Not Found"
+      icon: "alert-circle"
+      showInNav: false
+    description: "404 fallback for invalid routes"
+    loaderBehavior: "No loader; static page with link back to /feeds"
+
+# Loader function signatures
+# ============================================================================
+# Reference for implementing loaders in src/lib/router/routes.tsx
+# ============================================================================
+loaders:
+  loadFeedsData:
+    signature: "() => Promise<{ feeds: Feed[], isOffline: boolean, error?: Error }>"
+    implementation: |
+      async function loadFeedsData() {
+        try {
+          const feeds = await storage.getAll('feeds');
+          return { feeds, isOffline: !navigator.onLine };
+        } catch (error) {
+          logger.error('Failed to load feeds', error);
+          return { feeds: [], isOffline: true, error };
+        }
+      }
+    
+  loadFeedDetail:
+    signature: "({ params }: { params: { feedId: string } }) => Promise<{ feed: Feed, articles: Article[], isOffline: boolean }>"
+    implementation: |
+      async function loadFeedDetail({ params }: { params: { feedId: string } }) {
+        try {
+          const feed = await storage.get('feeds', params.feedId);
+          if (!feed) {
+            throw new Response('Feed not found', { status: 404 });
+          }
+          const allArticles = await storage.getAll('articles');
+          const articles = allArticles.filter(a => a.feedId === params.feedId);
+          return { feed, articles, isOffline: !navigator.onLine };
+        } catch (error) {
+          if (error instanceof Response) throw error; // Re-throw 404
+          logger.error('Failed to load feed detail', error);
+          throw new Response('Internal server error', { status: 500 });
+        }
+      }
+
+  loadArticleDetail:
+    signature: "({ params }: { params: { articleId: string } }) => Promise<{ article: Article, feed: Feed }>"
+    implementation: |
+      async function loadArticleDetail({ params }: { params: { articleId: string } }) {
+        try {
+          const article = await storage.get('articles', params.articleId);
+          if (!article) {
+            throw new Response('Article not found', { status: 404 });
+          }
+          const feed = await storage.get('feeds', article.feedId);
+          
+          // Mark article as read
+          await storage.put('readHistory', {
+            articleId: article.id,
+            readAt: new Date(),
+            feedId: article.feedId,
+          });
+          
+          return { article, feed };
+        } catch (error) {
+          if (error instanceof Response) throw error; // Re-throw 404
+          logger.error('Failed to load article detail', error);
+          throw new Response('Internal server error', { status: 500 });
+        }
+      }
+
+# Navigation menu configuration
+# ============================================================================
+# Derived from routes with showInNav: true
+# Used by Navbar, MobileNav, and DesktopNav components
+# ============================================================================
+navigation:
+  main_group:
+    label: "Main"
+    items:
+      - id: "nav-feeds"
+        label: "Feeds"
+        path: "/feeds"
+        icon: "rss"
+        order: 1
+        badge_source: "unreadCount" # Zustand store: useStore(state => state.unreadCount)
+        
+      - id: "nav-favorites"
+        label: "Favorites"
+        path: "/favorites"
+        icon: "star"
+        order: 2
+        badge_source: null
+        
+      - id: "nav-history"
+        label: "History"
+        path: "/history"
+        icon: "clock"
+        order: 3
+        badge_source: null
+
+  user_group:
+    label: "User"
+    items:
+      - id: "nav-settings"
+        label: "Settings"
+        path: "/settings"
+        icon: "settings"
+        order: 4
+        badge_source: null
+
+# Route transitions and lifecycle
+# ============================================================================
+# Describes React Router lifecycle hooks and side effects
+# ============================================================================
+lifecycle:
+  onRouteEnter:
+    - "Log navigation event via logger.info('Route entered', { path })"
+    - "Update document.title from route.handle.title"
+    - "Track page view in analytics (if enabled in settings)"
+    - "Close mobile navigation drawer (set isOpen = false)"
+    
+  onRouteLeave:
+    - "Log navigation event via logger.info('Route left', { path })"
+    - "Cancel pending async operations (loader aborts)"
+    - "Save scroll position for back/forward cache"
+
+  onLoaderStart:
+    - "Show loading indicator (Suspense fallback)"
+    - "Log loader start via logger.debug('Loader started', { path })"
+
+  onLoaderComplete:
+    - "Hide loading indicator"
+    - "Log loader completion via logger.debug('Loader completed', { path, duration })"
+
+  onLoaderError:
+    - "Log error via logger.error('Loader failed', error)"
+    - "Render errorElement or default error boundary"
+    - "Show toast notification with retry option"
+
+# Offline behavior
+# ============================================================================
+# How routes behave when navigator.onLine === false
+# ============================================================================
+offline:
+  strategy: "Offline-first with graceful degradation"
+  
+  feeds_route:
+    behavior: "Load cached feeds from IndexedDB; show 'Offline' indicator"
+    refresh_disabled: true
+    add_feed_disabled: true
+    
+  feed_detail_route:
+    behavior: "Load cached articles; show 'Offline' indicator"
+    refresh_disabled: true
+    mark_as_read: true # Still works offline (IndexedDB write)
+    
+  article_detail_route:
+    behavior: "Load cached article content; show 'Offline' indicator"
+    favorite_toggle: true # Still works offline
+    share: false # Requires online connection
+    
+  favorites_route:
+    behavior: "Load cached favorites; fully functional offline"
+    
+  history_route:
+    behavior: "Load cached history; fully functional offline"
+    
+  settings_route:
+    behavior: "Load cached settings; fully functional offline"
+    opml_export: true # Works offline (downloads cached feeds)
+    opml_import: false # Requires feed fetching (online only)
+
+# Testing checklist
+# ============================================================================
+# Routes to test in unit, integration, and e2e tests
+# ============================================================================
+testing:
+  unit_tests:
+    - "Test route configuration is valid (no duplicate paths)"
+    - "Test loader functions handle errors gracefully"
+    - "Test loader functions return correct data shape"
+    - "Test route params are validated correctly"
+    
+  integration_tests:
+    - "Test navigation between routes via Link clicks"
+    - "Test browser back/forward buttons work correctly"
+    - "Test direct URL entry loads correct route"
+    - "Test 404 route for invalid paths"
+    - "Test loader data is accessible via useLoaderData()"
+    - "Test theme persists across route changes"
+    - "Test mobile drawer closes on navigation"
+    
+  e2e_tests:
+    - "Test user flow: Feeds → Feed Detail → Article Detail → Back"
+    - "Test user flow: Feeds → Favorites → History → Settings"
+    - "Test offline mode: Load page, disconnect, navigate (should work)"
+    - "Test theme toggle on each route (light/dark/system)"
+    - "Test mobile navigation on 375px, 768px, 1024px viewports"
+    - "Test keyboard navigation (Tab, Enter, Escape for drawer)"
+    - "Test screen reader announces route changes"
+
+# Future enhancements
+# ============================================================================
+# Potential route additions or modifications
+# ============================================================================
+future:
+  - id: "search"
+    path: "/search"
+    description: "Search across all articles (requires search index)"
+    priority: "Medium"
+    
+  - id: "categories"
+    path: "/categories/:categoryId"
+    description: "Filter feeds by user-defined category"
+    priority: "Low"
+    
+  - id: "feed-settings"
+    path: "/feeds/:feedId/settings"
+    description: "Per-feed settings (refresh interval, notification preferences)"
+    priority: "Low"
+
+# Notes
+# ============================================================================
+# - All routes support lazy loading via React.lazy() for code splitting
+# - All routes are client-side only (no SSR/SSG)
+# - React Router v6 data router API (createBrowserRouter)
+# - Loaders can be aborted via AbortController (React Router built-in)
+# - Error boundaries handle loader failures gracefully
+# - Routes persist via browser history API (no custom session storage)
+# ============================================================================
