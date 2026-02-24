@@ -8,6 +8,9 @@ import type { Route } from '@/types/navigation';
 import { FeedsPage } from '@/pages/FeedsPage';
 import { FeedDetailPage } from '@/pages/FeedDetailPage';
 import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
+import { FavoritesPage } from '@/pages/Favorites';
+import { HistoryPage } from '@/pages/History';
+import Settings from '@/pages/Settings';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
 
@@ -45,7 +48,7 @@ export const routes: Route[] = [
   },
   {
     path: '/favorites',
-    element: <div>Favorites (Coming soon)</div>,
+    element: <FavoritesPage />,
     handle: {
       title: 'Favorites',
       icon: 'star',
@@ -53,7 +56,7 @@ export const routes: Route[] = [
   },
   {
     path: '/history',
-    element: <div>History (Coming soon)</div>,
+    element: <HistoryPage />,
     handle: {
       title: 'History',
       icon: 'clock',
@@ -61,7 +64,7 @@ export const routes: Route[] = [
   },
   {
     path: '/settings',
-    element: <div>Settings (Coming soon)</div>,
+    element: <Settings />,
     handle: {
       title: 'Settings',
       icon: 'settings',

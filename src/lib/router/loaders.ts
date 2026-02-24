@@ -68,15 +68,13 @@ export async function loadArticleDetail({ params }: { params: { articleId: strin
       throw new Response('Article not found', { status: 404 });
     }
 
-    const feed = await storage.get('feeds', article.feedId) as Feed;
+    // Mark article as read when opened
+    if (!article.readAt) {
+      article.readAt = new Date();
+      await storage.put('articles', article);
+    }
 
-    // Mark article as read (skip for now - readHistory store doesn't exist yet)
-    // TODO: Implement after readHistory store is added
-    // await storage.put('readHistory', {
-    //   articleId: article.id,
-    //   readAt: new Date(),
-    //   feedId: article.feedId,
-    // });
+    const feed = await storage.get('feeds', article.feedId) as Feed;
 
     return { article, feed };
   } catch (error) {
