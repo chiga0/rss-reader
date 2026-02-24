@@ -15,16 +15,16 @@ import type { Feed, Article } from '@/models';
 export async function loadFeedsData() {
   try {
     const feeds = await storage.getAll('feeds') as Feed[];
-    return { 
-      feeds: feeds || [], 
-      isOffline: !navigator.onLine 
+    return {
+      feeds: feeds || [],
+      isOffline: !navigator.onLine
     };
   } catch (error) {
     logger.error('Failed to load feeds', error as Error);
-    return { 
-      feeds: [], 
-      isOffline: true, 
-      error: error as Error 
+    return {
+      feeds: [],
+      isOffline: true,
+      error: error as Error
     };
   }
 }
@@ -40,14 +40,14 @@ export async function loadFeedDetail({ params }: { params: { feedId: string } })
     if (!feed) {
       throw new Response('Feed not found', { status: 404 });
     }
-    
+
     const allArticles = await storage.getAll('articles') as Article[];
     const articles = allArticles.filter(a => a.feedId === params.feedId);
-    
-    return { 
-      feed, 
-      articles, 
-      isOffline: !navigator.onLine 
+
+    return {
+      feed,
+      articles,
+      isOffline: !navigator.onLine
     };
   } catch (error) {
     if (error instanceof Response) throw error; // Re-throw 404
@@ -67,9 +67,9 @@ export async function loadArticleDetail({ params }: { params: { articleId: strin
     if (!article) {
       throw new Response('Article not found', { status: 404 });
     }
-    
+
     const feed = await storage.get('feeds', article.feedId) as Feed;
-    
+
     // Mark article as read (skip for now - readHistory store doesn't exist yet)
     // TODO: Implement after readHistory store is added
     // await storage.put('readHistory', {
@@ -77,7 +77,7 @@ export async function loadArticleDetail({ params }: { params: { articleId: strin
     //   readAt: new Date(),
     //   feedId: article.feedId,
     // });
-    
+
     return { article, feed };
   } catch (error) {
     if (error instanceof Response) throw error; // Re-throw 404

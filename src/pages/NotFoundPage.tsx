@@ -15,7 +15,7 @@ export function NotFoundPage() {
       <p className="text-muted-foreground mb-6 text-center">
         The page you're looking for doesn't exist or has been moved.
       </p>
-      <Link 
+      <Link
         to="/feeds"
         className="inline-flex items-center justify-center gap-2 h-10 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
       >

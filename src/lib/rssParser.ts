@@ -73,7 +73,7 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
   const title = getTextContent(channel, 'title') || 'Untitled Feed';
   const description = getTextContent(channel, 'description') || '';
   const link = getTextContent(channel, 'link') || feedUrl;
-  
+
   // Extract feed icon (RSS 2.0 uses <image><url>)
   const imageElement = channel.querySelector('image');
   const iconUrl = imageElement ? getTextContent(imageElement, 'url') : undefined;
@@ -92,11 +92,11 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
     const title = getTextContent(item, 'title') || 'Untitled';
     const link = getTextContent(item, 'link') || '';
     const description = getTextContent(item, 'description') || '';
-    
+
     // Try <content:encoded> for full content (common extension)
     const contentEncoded = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded')[0];
     const content = contentEncoded?.textContent || description;
-    
+
     // Handle Dublin Core creator (common extension for author)
     const dcCreator = item.getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')[0];
     const author = getTextContent(item, 'author') || dcCreator?.textContent?.trim() || undefined;
@@ -140,7 +140,7 @@ function parseAtom(doc: Document, feedUrl: string): ParsedFeed {
   // Extract feed metadata
   const title = getTextContent(feedElement, 'title') || 'Untitled Feed';
   const subtitle = getTextContent(feedElement, 'subtitle') || '';
-  
+
   // Atom uses <link rel="alternate">
   const linkElement = feedElement.querySelector('link[rel="alternate"]') || feedElement.querySelector('link');
   const link = linkElement?.getAttribute('href') || feedUrl;
@@ -160,7 +160,7 @@ function parseAtom(doc: Document, feedUrl: string): ParsedFeed {
   const entries = Array.from(feedElement.querySelectorAll('entry'));
   const articles: ParsedFeed['articles'] = entries.map((entry) => {
     const title = getTextContent(entry, 'title') || 'Untitled';
-    
+
     const linkElement = entry.querySelector('link[rel="alternate"]') || entry.querySelector('link');
     const link = linkElement?.getAttribute('href') || '';
 

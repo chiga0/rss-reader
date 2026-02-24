@@ -46,19 +46,19 @@ export function ThemeProvider({ children, defaultMode = 'system' }: ThemeProvide
   });
 
   // Compute resolved theme
-  const resolvedTheme: 'light' | 'dark' = 
+  const resolvedTheme: 'light' | 'dark' =
     mode === 'system' ? systemPreference : mode;
 
   // Listen for system theme changes
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
+
     const handleChange = (e: MediaQueryListEvent) => {
       setSystemPreference(e.matches ? 'dark' : 'light');
     };
 
     mediaQuery.addEventListener('change', handleChange);
-    
+
     return () => {
       mediaQuery.removeEventListener('change', handleChange);
     };
@@ -94,10 +94,10 @@ export function ThemeProvider({ children, defaultMode = 'system' }: ThemeProvide
  */
 export function useTheme(): ThemeContextValue {
   const context = useContext(ThemeContext);
-  
+
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  
+
   return context;
 }
