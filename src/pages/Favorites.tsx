@@ -34,7 +34,7 @@ export function FavoritesPage() {
 
   useEffect(() => {
     const init = async () => {
-      try { await storage.init(); } catch { /* already init */ }
+      await storage.init().catch(() => { /* already initialized */ });
       await loadFavorites();
     };
     init();

@@ -31,26 +31,20 @@ export function FeedsPage() {
 
   // Load feeds and start auto-refresh on mount
   useEffect(() => {
+    let cancelled = false;
     const init = async () => {
-      try {
-        await storage.init();
-      } catch {
-        // Storage may already be initialized
-      }
+      await storage.init().catch(() => { /* already initialized */ });
       await loadFeeds();
-      // Auto-refresh feeds in background
+      if (cancelled) return;
       setIsRefreshing(true);
-      try {
-        await syncService.refreshAllFeeds();
-        await loadFeeds();
-      } catch {
-        // Silent fail for background refresh
-      } finally {
-        setIsRefreshing(false);
-      }
+      await syncService.refreshAllFeeds().catch(() => { /* background refresh failure */ });
+      if (cancelled) return;
+      await loadFeeds();
+      setIsRefreshing(false);
     };
     init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { cancelled = true; };
+  }, [loadFeeds]);
 
   // Load article counts whenever feeds change
   useEffect(() => {

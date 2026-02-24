@@ -38,7 +38,7 @@ export function HistoryPage() {
 
   useEffect(() => {
     const init = async () => {
-      try { await storage.init(); } catch { /* already init */ }
+      await storage.init().catch(() => { /* already initialized */ });
       await loadHistory();
     };
     init();
