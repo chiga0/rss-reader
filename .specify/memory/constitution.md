@@ -1,27 +1,33 @@
 <!--
 SYNC IMPACT REPORT
 ================================================================================
-Version: 1.0.0 (initial adoption)
+Version: 2.0.0 → MAJOR (new mandatory principles added, coverage threshold raised)
 Ratification Date: 2026-01-25
-Last Amended: 2026-01-25
+Last Amended: 2026-02-24
 
-PRINCIPLES ESTABLISHED:
-  ✓ I. Progressive Web App Architecture
-  ✓ II. Test-First Development (NON-NEGOTIABLE)
-  ✓ III. Responsive Design for All Platforms
-  ✓ IV. Modern Web Technologies & Standards
-  ✓ V. Observability & Analytics
+VERSION CHANGE: 1.0.0 → 2.0.0
 
-SECTIONS DEFINED:
-  ✓ Technology Stack & Dependencies
-  ✓ Feature Scope Definition
-  ✓ Governance (Amendment Process & Compliance)
+MODIFIED PRINCIPLES:
+  ✓ II. Test-First Development — coverage threshold raised from 80% to 90%+;
+        integration tests and automation scripts now MANDATORY.
 
-TEMPLATES UPDATED:
-  ⚠ plan-template.md - reference for PWA/responsive context
-  ⚠ spec-template.md - aligned with feature scope
-  ⚠ tasks-template.md - emphasizes test-first principle
+ADDED PRINCIPLES:
+  ✓ VI. Styling Architecture (Tailwind CSS + theme.css, no inline/extra CSS)
+  ✓ VII. Routing Architecture (hash routing, lib/router directory)
+  ✓ VIII. Code Formatting Automation (auto-format after AI code generation)
 
+REMOVED PRINCIPLES: (none)
+
+SECTIONS MODIFIED:
+  ✓ Technology Stack & Dependencies — updated to reflect actual stack choices
+  ✓ Governance — added auto-format compliance check
+
+TEMPLATES REQUIRING UPDATES:
+  ⚠ plan-template.md — should reference new styling/routing principles
+  ⚠ spec-template.md — aligned with updated feature scope
+  ✓ tasks-template.md — already emphasizes test-first; coverage threshold updated
+
+FOLLOW-UP TODOs: (none)
 ================================================================================
 -->
 
@@ -45,11 +51,13 @@ All UI components MUST be tested across breakpoints (mobile, tablet, desktop).
 Every feature implementation MUST follow TDD discipline:
 
 - **Unit Tests First**: Write tests BEFORE implementation code. Tests MUST fail initially.
-- **Coverage Threshold**: Minimum 80% code coverage for all feature code.
-- **Test Organization**: Categorized as unit, integration, and contract tests per feature requirements.
+- **Coverage Threshold**: Minimum 90% code coverage for all feature code.
+- **Integration Tests**: Every feature MUST include integration tests validating cross-module interactions.
+- **Automation Scripts**: Every feature MUST include automated test scripts runnable via `npm run test` and `npm run test:e2e`.
+- **Test Organization**: Categorized as unit, integration, and e2e tests per feature requirements.
 - **Red-Green-Refactor**: Strict cycle enforcement—no refactoring without passing tests.
 
-No feature is considered complete without comprehensive test coverage and proof of passing CI/CD checks.
+No feature is considered complete without comprehensive test coverage (≥90%), integration tests, and proof of passing CI/CD checks.
 
 ### III. Responsive Design for All Platforms
 
@@ -82,28 +90,61 @@ Core functionality MUST be instrumented for monitoring:
 
 Logging MUST be structured (JSON format, consistent schema); avoid unstructured console.log() in production code.
 
+### VI. Styling Architecture (NON-NEGOTIABLE)
+
+All visual styling MUST follow these rules:
+
+- **Style File Location**: All CSS/style files MUST reside in `src/styles/` directory. No other directories may contain standalone style files.
+- **No Inline Styles in index.html**: The `index.html` file MUST NOT contain any inline `<style>` blocks or `style` attributes (except the theme initialization script which uses JS-based class toggling).
+- **Theme Centralization**: All color theme variables and theme-related styles MUST be defined in `src/styles/theme.css`. Components MUST reference theme variables from this file.
+- **Tailwind CSS Only**: All component styling MUST use Tailwind CSS utility classes. Creating additional `.css`, `.scss`, `.less`, or CSS Module files for component styling is PROHIBITED.
+- **No Extra CSS Files**: Beyond `src/styles/globals.css` and `src/styles/theme.css`, no additional CSS/SCSS files are permitted unless explicitly justified and approved in a constitution amendment.
+
+### VII. Routing Architecture (NON-NEGOTIABLE)
+
+All routing configuration MUST follow these rules:
+
+- **Route Definition Location**: All route definitions MUST reside in `src/lib/router/` directory. No route definitions outside this directory.
+- **Hash Router**: The application MUST use hash-based routing (`HashRouter` or equivalent) to ensure PWA compatibility across all deployment targets (static hosting, file:// protocol, etc.).
+- **Centralized Configuration**: Route paths, loaders, and navigation items MUST be co-located in `src/lib/router/` for single-source-of-truth routing.
+
+### VIII. Code Formatting Automation (NON-NEGOTIABLE)
+
+All code MUST maintain consistent formatting:
+
+- **Auto-Format on Completion**: After AI-assisted code generation or modification, the `npm run format` command MUST be executed automatically to ensure consistent code style.
+- **Prettier Configuration**: The project MUST maintain a `.prettierrc.json` configuration; all TypeScript, TSX, and CSS files MUST conform to it.
+- **Pre-Commit Enforcement**: Code that does not pass `npm run format` check MUST NOT be committed.
+
 ## Technology Stack & Dependencies
 
 **Language**: TypeScript 5.x (strict mode required)
 
-**Frontend Framework**: React 18.x+ / Vue 3.x+ / Svelte 4.x+ (TBD by team)
+**Frontend Framework**: React 18.x+ with React Router DOM 6.x (hash routing)
 
-**Build Tool**: Vite 5.x+
+**Build Tool**: Vite 7.x+ with @tailwindcss/vite plugin
 
-**Testing**: Vitest (unit), Playwright (integration/e2e), MSW (API mocking)
+**Styling**: Tailwind CSS 4.x (utility-first; all styles via Tailwind classes); theme variables in `src/styles/theme.css`
 
-**Package Manager**: npm/pnpm
+**Testing**: Vitest (unit/integration), Playwright (e2e); minimum 90% coverage required
+
+**Package Manager**: npm
 
 **Runtime**: Node.js 18+ (for build); Browser APIs only for runtime
 
-**Storage**: IndexedDB (client-side) + optional sync server
+**Storage**: IndexedDB (client-side) via custom storage abstraction
 
-**State Management**: TBD (Redux, Zustand, Jotai, or context-based)
+**State Management**: Zustand 4.x
 
 **PWA Requirements**:
-- Service Worker API (offline sync, push notifications)
+- Vite PWA Plugin (vite-plugin-pwa) with injectManifest strategy
+- Workbox (service worker caching, routing, precaching)
 - Web App Manifest (installable metadata)
 - Cache Storage API (asset & data caching)
+
+**Code Quality**:
+- ESLint + Prettier mandatory; auto-format via `npm run format`
+- TypeScript strict mode required
 
 ## Feature Scope Definition
 
@@ -158,9 +199,10 @@ Logging MUST be structured (JSON format, consistent schema); avoid unstructured 
 
 ### Compliance & Verification
 
-- **Code Review Gate**: All PRs MUST verify compliance with Core Principles (especially II—Test-First).
-- **CI/CD Integration**: Tests MUST pass and coverage thresholds MUST be met before merge.
-- **Non-Negotiables**: Principle II (Test-First) is absolute; no exceptions granted.
+- **Code Review Gate**: All PRs MUST verify compliance with Core Principles (especially II—Test-First, VI—Styling, VII—Routing, VIII—Formatting).
+- **CI/CD Integration**: Tests MUST pass, coverage thresholds (≥90%) MUST be met, and `npm run format` MUST produce no changes before merge.
+- **Non-Negotiables**: Principles II (Test-First), VI (Styling Architecture), VII (Routing Architecture), and VIII (Code Formatting) are absolute; no exceptions granted.
+- **Auto-Format Gate**: AI-generated code MUST be auto-formatted before commit. The `npm run format` command MUST be run after every code generation session.
 
 ### Runtime Guidance
 
@@ -172,4 +214,4 @@ The Constitution supersedes all other project guidance. In case of conflict, the
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-01-25
+**Version**: 2.0.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-02-24

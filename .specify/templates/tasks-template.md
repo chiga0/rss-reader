@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Constitution Requirement - Test-First (MANDATORY)**: Per RSS Reader Constitution Principle II, EVERY feature implementation MUST follow TDD. Tests MUST be written FIRST and MUST FAIL before implementation begins. Minimum 80% code coverage required.
+**Constitution Requirement - Test-First (MANDATORY)**: Per RSS Reader Constitution Principle II, EVERY feature implementation MUST follow TDD. Tests MUST be written FIRST and MUST FAIL before implementation begins. Minimum 90% code coverage required. Integration tests and e2e automation scripts are MANDATORY.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
