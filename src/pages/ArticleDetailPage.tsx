@@ -98,21 +98,7 @@ export function ArticleDetailPage() {
       if (s) setSettings(s);
     });
   }, []);
-  const [isFavorite, setIsFavorite] = useState(article.isFavorite);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
-  const [translations, setTranslations] = useState<Record<number, string>>({});
-  const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [isSummarizing, setIsSummarizing] = useState(false);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    storage.get('settings', 'default').then((s) => {
-      if (s) setSettings(s);
-    });
-  }, []);
->>>>>>> c52ae1aa68f197f79073ee2c43bb66ebbc7c9797
+  // settings are loaded above
 
   const handleFavoriteToggle = useCallback(async () => {
     await toggleArticleFavorite(article.id);
@@ -270,7 +256,6 @@ export function ArticleDetailPage() {
         </figure>
       )}
 
-<<<<<<< HEAD
       {/* Loading Full Content Indicator */}
       {isLoadingFullContent && (
         <div className="mb-6 flex items-center gap-2 rounded-md border border-border bg-secondary p-3 text-sm text-secondary-foreground">
@@ -300,22 +285,6 @@ export function ArticleDetailPage() {
           </div>
         ))}
       </div>
-=======
-      {/* Article Content with inline translations */}
-      <div className={proseClasses}>
-        {segments.map((segment, index) => (
-          <div key={index}>
-            <div dangerouslySetInnerHTML={{ __html: segment.html }} />
-            {translations[index] && (
-              <p className="my-1 italic text-muted-foreground">{translations[index]}</p>
-            )}
-            {isTranslating && translatingIndex === index && !translations[index] && (
-              <p className="my-1 animate-pulse italic text-muted-foreground">翻译中...</p>
-            )}
-          </div>
-        ))}
-      </div>
->>>>>>> c52ae1aa68f197f79073ee2c43bb66ebbc7c9797
 
       {/* Original Article Link + Load Full Content */}
       {article.link && (
