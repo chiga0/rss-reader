@@ -28,21 +28,39 @@ async function chatCompletion(
 
   const base = getApiBase(settings);
   const model = getModel(settings);
+  const targetUrl = `${base}/chat/completions`;
 
-  const response = await fetch(`${base}/chat/completions`, {
+  const requestBody = JSON.stringify({
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.3,
+  });
+
+  // In development, route through the Vite proxy to avoid CORS issues.
+  // In production, call the AI API directly (hosting platform should provide a proxy/rewrite).
+  const useProxy = import.meta.env.DEV;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  let fetchUrl: string;
+  if (useProxy) {
+    fetchUrl = '/api/ai-proxy';
+    headers['X-Target-URL'] = targetUrl;
+    headers['X-Api-Key'] = apiKey;
+  } else {
+    fetchUrl = targetUrl;
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
+
+  const response = await fetch(fetchUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
-      temperature: 0.3,
-    }),
+    headers,
+    body: requestBody,
   });
 
   if (!response.ok) {

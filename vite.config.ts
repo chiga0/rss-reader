@@ -1,12 +1,73 @@
 import { defineConfig } from 'vite';
+import type { PluginOption, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
+/**
+ * Vite plugin that adds a server middleware to proxy AI API requests,
+ * avoiding browser CORS restrictions when calling external AI endpoints.
+ */
+function aiProxyPlugin(): PluginOption {
+  return {
+    name: 'ai-proxy',
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use('/api/ai-proxy', async (req, res) => {
+        if (req.method !== 'POST') {
+          res.writeHead(405, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Method not allowed' }));
+          return;
+        }
+
+        const targetUrl = req.headers['x-target-url'];
+        if (!targetUrl || typeof targetUrl !== 'string') {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Missing X-Target-URL header' }));
+          return;
+        }
+
+        // Read request body
+        const chunks: Buffer[] = [];
+        for await (const chunk of req) {
+          chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+        }
+        const body = Buffer.concat(chunks).toString();
+
+        try {
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          const apiKey = req.headers['x-api-key'];
+          if (apiKey && typeof apiKey === 'string') {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+          }
+
+          const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers,
+            body,
+          });
+
+          const responseText = await response.text();
+          res.writeHead(response.status, {
+            'Content-Type': response.headers.get('content-type') || 'application/json',
+          });
+          res.end(responseText);
+        } catch (error: unknown) {
+          const message = error instanceof Error ? error.message : 'Proxy request failed';
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: message }));
+        }
+      });
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    aiProxyPlugin(),
     react(),
     tailwindcss(),
     VitePWA({
