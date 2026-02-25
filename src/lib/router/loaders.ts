@@ -14,6 +14,7 @@ import type { Feed, Article } from '@/models';
  */
 export async function loadFeedsData() {
   try {
+    await storage.init().catch(() => { /* already initialized */ });
     const feeds = await storage.getAll('feeds') as Feed[];
     return {
       feeds: feeds || [],
@@ -36,6 +37,7 @@ export async function loadFeedsData() {
  */
 export async function loadFeedDetail({ params }: { params: { feedId: string } }) {
   try {
+    await storage.init().catch(() => { /* already initialized */ });
     const feed = await storage.get('feeds', params.feedId) as Feed;
     if (!feed) {
       throw new Response('Feed not found', { status: 404 });
@@ -63,6 +65,7 @@ export async function loadFeedDetail({ params }: { params: { feedId: string } })
  */
 export async function loadArticleDetail({ params }: { params: { articleId: string } }) {
   try {
+    await storage.init().catch(() => { /* already initialized */ });
     const article = await storage.get('articles', params.articleId) as Article;
     if (!article) {
       throw new Response('Article not found', { status: 404 });
