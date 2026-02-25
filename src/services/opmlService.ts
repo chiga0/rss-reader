@@ -5,6 +5,7 @@
 
 import { logger } from '@lib/logger';
 import { storage } from '@lib/storage';
+import { subscribeFeed } from '@services/feedService';
 import type { Feed, Category } from '@models/Feed';
 
 export interface OPMLOutline {
@@ -119,13 +120,13 @@ export async function importFromOPML(
   let failed = 0;
   const errors: string[] = [];
 
-  // Import category first
+  // Build category map: name -> ID (covers both existing and newly created categories)
   const categoryMap = new Map<string, string>();
   const existingCategories = await storage.getAll('categories');
-  const existingCategoryNames = new Set(existingCategories.map(c => c.name));
+  existingCategories.forEach(c => categoryMap.set(c.name, c.id));
 
   for (const { category } of feedUrls) {
-    if (category && !categoryMap.has(category) && !existingCategoryNames.has(category)) {
+    if (category && !categoryMap.has(category)) {
       const newCategory: Category = {
         id: crypto.randomUUID(),
         name: category,
@@ -144,10 +145,14 @@ export async function importFromOPML(
 
     try {
       const categoryId = category ? categoryMap.get(category) : undefined;
-      // Note: subscribeFeed is from feedService, will be imported there
-      // For now, we'll just log
-      logger.debug('Importing feed', { url, category });
-      imported++;
+      const result = await subscribeFeed(url, categoryId);
+      if (result.success) {
+        imported++;
+      } else {
+        failed++;
+        errors.push(`${url}: ${result.error || 'Unknown error'}`);
+        logger.warn('Failed to import feed', { url, error: result.error });
+      }
     } catch (error) {
       failed++;
       errors.push(`${url}: ${error instanceof Error ? error.message : 'Unknown error'}`);

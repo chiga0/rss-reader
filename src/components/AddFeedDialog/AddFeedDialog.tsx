@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { useOfflineDetection } from '../../hooks/useOfflineDetection';
+import { useToast } from '../../hooks/useToast';
 
 interface AddFeedDialogProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
 
   const { subscribeFeed, categories, loadCategories } = useStore();
   const { isOnline } = useOfflineDetection();
+  const { addToast } = useToast();
 
   // Load categories on mount
   useState(() => {
@@ -52,11 +54,16 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
     setIsSubmitting(true);
 
     try {
-      await subscribeFeed(url.trim(), categoryId || undefined);
-      // Success - close dialog and reset form
+      const result = await subscribeFeed(url.trim(), categoryId || undefined);
+      if (!result.success) {
+        setError(result.error || 'Failed to add feed');
+        return;
+      }
+      // Success - close dialog, reset form, and notify user
       setUrl('');
       setCategoryId('');
       setError('');
+      addToast('Feed added successfully!', 'success');
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add feed');

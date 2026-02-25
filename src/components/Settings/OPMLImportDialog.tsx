@@ -6,12 +6,16 @@
 import { useState, useRef } from 'react';
 import { importFromOPML } from '@services/opmlService';
 import { logger } from '@lib/logger';
+import { useStore } from '@hooks/useStore';
+import { useToast } from '@hooks/useToast';
 
 export function OPMLImportDialog() {
   const [isImporting, setIsImporting] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [result, setResult] = useState<{ imported: number; failed: number; errors: string[] } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { loadFeeds } = useStore();
+  const { addToast } = useToast();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -31,15 +35,21 @@ export function OPMLImportDialog() {
       setResult(importResult);
       logger.info('OPML import completed', importResult);
       
-      // Reload page to show new feeds
+      // Reload feeds in store to show newly imported feeds
       if (importResult.imported > 0) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        await loadFeeds();
+        addToast(
+          `Successfully imported ${importResult.imported} feed${importResult.imported !== 1 ? 's' : ''}`,
+          'success'
+        );
+      } else if (importResult.errors.length > 0) {
+        addToast('Import completed with errors. No feeds were added.', 'error');
       }
     } catch (error) {
       logger.error('Failed to import OPML', error instanceof Error ? error : undefined);
-      setResult({ imported: 0, failed: 0, errors: [error instanceof Error ? error.message : 'Unknown error'] });
+      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      setResult({ imported: 0, failed: 0, errors: [errMsg] });
+      addToast(`Import failed: ${errMsg}`, 'error');
     } finally {
       setIsImporting(false);
       if (fileInputRef.current) {
