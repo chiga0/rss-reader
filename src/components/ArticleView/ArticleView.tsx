@@ -3,12 +3,20 @@
  * Full article reader with sanitized HTML content
  */
 
+import { useState } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
+import { translateText, summarizeText } from '@services/aiService';
+import { storage } from '@lib/storage';
 
 export function ArticleView() {
   const { articles, selectedArticleId, isLoading, error, setError, toggleArticleFavorite, selectArticle } = useStore();
+
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [translatedContent, setTranslatedContent] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState<'summary' | 'translate' | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   // Get selected article
   const article = articles.find((a) => a.id === selectedArticleId);
@@ -16,6 +24,46 @@ export function ArticleView() {
   // Handle back to article list
   const handleBack = () => {
     selectArticle(null);
+  };
+
+  const getPlainText = (html: string) => {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || div.innerText || '';
+  };
+
+  const handleSummarize = async () => {
+    if (!article) return;
+    setAiError(null);
+    setAiLoading('summary');
+    try {
+      const settings = await storage.get('settings', 'default');
+      if (!settings) throw new Error('Settings not found');
+      const text = getPlainText(article.content || article.summary || article.title);
+      const summary = await summarizeText(text, settings);
+      setAiSummary(summary);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Failed to summarize');
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleTranslate = async () => {
+    if (!article) return;
+    setAiError(null);
+    setAiLoading('translate');
+    try {
+      const settings = await storage.get('settings', 'default');
+      if (!settings) throw new Error('Settings not found');
+      const text = getPlainText(article.content || article.summary || article.title);
+      const translated = await translateText(text, settings);
+      setTranslatedContent(translated);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'Failed to translate');
+    } finally {
+      setAiLoading(null);
+    }
   };
 
   if (isLoading) {
@@ -151,9 +199,98 @@ export function ArticleView() {
         dangerouslySetInnerHTML={{ __html: article.content || '' }}
       />
 
+      {/* AI Actions */}
+      <div className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <div className="flex flex-wrap gap-3 mb-4">
+          <button
+            onClick={handleSummarize}
+            disabled={aiLoading !== null}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground shadow-sm hover:bg-muted disabled:opacity-50 transition-colors"
+          >
+            {aiLoading === 'summary' ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Summarizing...
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                AI Summary
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleTranslate}
+            disabled={aiLoading !== null}
+            className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground shadow-sm hover:bg-muted disabled:opacity-50 transition-colors"
+          >
+            {aiLoading === 'translate' ? (
+              <>
+                <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Translating...
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                Translate to Chinese
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* AI Error */}
+        {aiError && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+            <div className="flex items-start gap-2">
+              <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{aiError}</span>
+            </div>
+          </div>
+        )}
+
+        {/* AI Summary Result */}
+        {aiSummary && (
+          <div className="mb-4 rounded-lg border border-border bg-muted/50 p-4">
+            <h3 className="mb-2 text-sm font-semibold text-foreground flex items-center gap-2">
+              <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              AI Summary
+            </h3>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{aiSummary}</p>
+          </div>
+        )}
+
+        {/* AI Translation Result */}
+        {translatedContent && (
+          <div className="mb-4 rounded-lg border border-border bg-muted/50 p-4">
+            <h3 className="mb-2 text-sm font-semibold text-foreground flex items-center gap-2">
+              <svg className="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+              </svg>
+              Translation (中文)
+            </h3>
+            <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">{translatedContent}</p>
+          </div>
+        )}
+      </div>
+
       {/* Article Link */}
       {article.link && (
-        <footer className="mt-8 border-t border-gray-200 pt-6 dark:border-gray-700">
+        <footer className="border-t border-gray-200 pt-6 dark:border-gray-700">
           <a
             href={article.link}
             target="_blank"
