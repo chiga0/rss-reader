@@ -47,6 +47,7 @@ export function ArticleDetailPage() {
   const navigate = useNavigate();
   const { toggleArticleFavorite } = useStore();
 
+  const [isFavorite, setIsFavorite] = useState(article.isFavorite);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
@@ -63,6 +64,7 @@ export function ArticleDetailPage() {
 
   const handleFavoriteToggle = useCallback(async () => {
     await toggleArticleFavorite(article.id);
+    setIsFavorite((prev) => !prev);
   }, [toggleArticleFavorite, article.id]);
 
   const sanitizedContent = article.content
@@ -232,7 +234,7 @@ export function ArticleDetailPage() {
 
       {/* Fixed Bottom Action Bar */}
       <ArticleActionBar
-        isFavorite={article.isFavorite}
+        isFavorite={isFavorite}
         isTranslating={isTranslating}
         isSummarizing={isSummarizing}
         onToggleFavorite={handleFavoriteToggle}
