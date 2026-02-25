@@ -5,9 +5,8 @@
 
 import { useCallback } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Heart, RefreshCw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Heart, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
-import { sanitizeHTML } from '@utils/sanitize';
 import { formatRelativeTime } from '@utils/dateFormat';
 import type { Feed, Article } from '@/models';
 
@@ -82,89 +81,65 @@ export function FeedDetailPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
           {sortedArticles.map((article) => {
             const isUnread = !article.readAt;
-            const articleContent = article.content
-              ? sanitizeHTML(article.content)
-              : article.summary || '';
             return (
-              <article
+              <Link
                 key={article.id}
-                className="rounded-lg border border-border bg-card p-6"
+                to={`/articles/${article.id}`}
+                className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
               >
-                {/* Article Header */}
-                <div className="mb-4 flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      {isUnread && <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />}
-                      <Link
-                        to={`/articles/${article.id}`}
-                        className={`text-lg font-semibold transition-colors hover:text-primary ${
-                          isUnread ? 'text-card-foreground' : 'text-muted-foreground'
-                        }`}
-                      >
-                        {article.title}
-                      </Link>
-                    </div>
-                    <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
-                      {article.author && <span>{article.author}</span>}
-                      <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => handleFavoriteToggle(article.id, e)}
-                    className={`shrink-0 rounded-md p-1.5 transition-colors ${
-                      article.isFavorite
-                        ? 'text-red-500'
-                        : 'text-muted-foreground hover:text-red-500'
-                    }`}
-                    title={article.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    <Heart className="h-4 w-4" fill={article.isFavorite ? 'currentColor' : 'none'} />
-                  </button>
+                {/* Unread Indicator */}
+                <div className="mt-2 flex h-2 w-2 shrink-0 items-center justify-center">
+                  {isUnread && <div className="h-2 w-2 rounded-full bg-primary" />}
                 </div>
 
-                {/* Featured Image */}
-                {article.imageUrl && (
-                  <figure className="mb-4 overflow-hidden rounded-lg">
-                    <img
-                      src={article.imageUrl}
-                      alt=""
-                      className="w-full object-cover"
-                      loading="lazy"
-                    />
-                  </figure>
-                )}
-
                 {/* Article Content */}
-                <div
-                  className="prose prose-neutral max-w-none dark:prose-invert
-                    prose-headings:text-foreground prose-headings:font-semibold
-                    prose-p:text-foreground prose-p:leading-relaxed
-                    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-                    prose-img:rounded-lg prose-img:my-4
-                    prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
-                    prose-code:text-foreground prose-code:bg-secondary prose-code:rounded prose-code:px-1
-                    prose-pre:bg-secondary prose-pre:text-foreground"
-                  dangerouslySetInnerHTML={{ __html: articleContent }}
-                />
-
-                {/* Article Footer */}
-                {article.link && (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <a
-                      href={article.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      Read original article
-                    </a>
+                <div className="min-w-0 flex-1">
+                  <h3
+                    className={`line-clamp-2 text-sm ${
+                      isUnread
+                        ? 'font-semibold text-card-foreground'
+                        : 'font-normal text-muted-foreground'
+                    }`}
+                  >
+                    {article.title}
+                  </h3>
+                  {article.summary && (
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                      {article.summary}
+                    </p>
+                  )}
+                  <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                    {article.author && <span>{article.author}</span>}
+                    <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
                   </div>
+                </div>
+
+                {/* Thumbnail */}
+                {article.imageUrl && (
+                  <img
+                    src={article.imageUrl}
+                    alt=""
+                    className="h-16 w-16 shrink-0 rounded-md object-cover"
+                    loading="lazy"
+                  />
                 )}
-              </article>
+
+                {/* Favorite */}
+                <button
+                  onClick={(e) => handleFavoriteToggle(article.id, e)}
+                  className={`shrink-0 rounded-md p-1.5 transition-colors ${
+                    article.isFavorite
+                      ? 'text-red-500'
+                      : 'text-muted-foreground hover:text-red-500'
+                  }`}
+                  title={article.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Heart className="h-4 w-4" fill={article.isFavorite ? 'currentColor' : 'none'} />
+                </button>
+              </Link>
             );
           })}
         </div>
