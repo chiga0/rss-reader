@@ -12,6 +12,7 @@ import {
   RSS_WITH_CONTENT_ENCODED,
   ATOM_WITH_MEDIA,
   EMPTY_FEED,
+  ATOM_WITH_XHTML_CONTENT,
 } from '../fixtures/feeds';
 
 describe('RSS Parser', () => {
@@ -123,6 +124,17 @@ describe('RSS Parser', () => {
       const first = result.articles[0];
       expect(first.publishedAt).toBeInstanceOf(Date);
       expect(first.publishedAt.getTime()).toBeGreaterThan(0);
+    });
+
+    it('should preserve HTML structure in XHTML content type', () => {
+      const result = parseFeed(ATOM_WITH_XHTML_CONTENT, 'https://example.com/feed.xml');
+
+      expect(result.articles).toHaveLength(1);
+      const article = result.articles[0];
+      // Content should preserve HTML tags, not just plain text
+      expect(article.content).toContain('<strong>');
+      expect(article.content).toContain('<a');
+      expect(article.content).toContain('full article');
     });
   });
 

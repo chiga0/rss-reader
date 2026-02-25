@@ -165,7 +165,7 @@ function parseAtom(doc: Document, feedUrl: string): ParsedFeed {
     const link = linkElement?.getAttribute('href') || '';
 
     const summary = getTextContent(entry, 'summary') || '';
-    const content = getTextContent(entry, 'content') || summary;
+    const content = getHTMLContent(entry, 'content') || summary;
 
     // Atom author
     const authorElement = entry.querySelector('author name');
@@ -209,6 +209,30 @@ function parseAtom(doc: Document, feedUrl: string): ParsedFeed {
 function getTextContent(parent: Element, selector: string): string {
   const element = parent.querySelector(selector);
   return element?.textContent?.trim() || '';
+}
+
+/**
+ * Get HTML content from an element, handling different content types.
+ * For Atom feeds, <content> may have type="html" (entity-encoded HTML),
+ * type="xhtml" (inline XHTML), or plain text.
+ * Using textContent on type="xhtml" would strip all HTML tags, so we
+ * need to extract innerHTML for that case.
+ */
+function getHTMLContent(parent: Element, selector: string): string {
+  const element = parent.querySelector(selector);
+  if (!element) return '';
+
+  const type = element.getAttribute('type');
+
+  if (type === 'xhtml') {
+    // For XHTML, the content is inline HTML inside a <div> wrapper.
+    // We need to serialize the child nodes to preserve HTML structure.
+    const div = element.querySelector('div') || element;
+    return div.innerHTML?.trim() || element.textContent?.trim() || '';
+  }
+
+  // For type="html" or no type, textContent correctly decodes entity-encoded HTML
+  return element.textContent?.trim() || '';
 }
 
 /**
