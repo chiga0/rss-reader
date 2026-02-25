@@ -1,15 +1,16 @@
 /**
  * Article Detail Page - Full article view
  * Auto marks article as read on open, supports favorite toggle
- * Renders sanitized HTML content with inline translation support
+ * Renders sanitized HTML content with inline translation and AI summary support
  */
 
-import { useCallback, useState, useMemo, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Heart, ExternalLink, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
 import { sanitizeHTML } from '@utils/sanitize';
 import { formatRelativeTime } from '@utils/dateFormat';
+import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
 import { storage } from '@lib/storage';
@@ -43,10 +44,60 @@ function parseContentSegments(html: string): { html: string; text: string }[] {
 }
 
 export function ArticleDetailPage() {
-  const { article, feed } = useLoaderData() as ArticleDetailLoaderData;
+  const { article: loaderArticle, feed } = useLoaderData() as ArticleDetailLoaderData;
   const navigate = useNavigate();
   const { toggleArticleFavorite } = useStore();
+  const [article, setArticle] = useState<Article>(loaderArticle);
+  const [isLoadingFullContent, setIsLoadingFullContent] = useState(false);
+  const [fullContentError, setFullContentError] = useState<string | null>(null);
 
+  const [isFavorite, setIsFavorite] = useState(article.isFavorite);
+  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [translations, setTranslations] = useState<Record<number, string>>({});
+  const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Auto-fetch full content from original URL if RSS content appears incomplete
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFullContent() {
+      if (!loaderArticle.link) return;
+
+      const currentContent = loaderArticle.content || loaderArticle.summary || '';
+      const textOnly = currentContent.replace(/<[^>]*>/g, '').trim();
+
+      if (textOnly.length >= 500) return;
+
+      setIsLoadingFullContent(true);
+      setFullContentError(null);
+
+      try {
+        const updated = await fetchAndCacheFullContent(loaderArticle);
+        if (!cancelled) {
+          setArticle(updated);
+        }
+      } catch {
+        if (!cancelled) {
+          setFullContentError('Failed to load full article content');
+        }
+      } finally {
+        if (!cancelled) setIsLoadingFullContent(false);
+      }
+    }
+
+    loadFullContent();
+    return () => { cancelled = true; };
+  }, [loaderArticle]);
+
+  useEffect(() => {
+    storage.get('settings', 'default').then((s) => {
+      if (s) setSettings(s);
+    });
+  }, []);
   const [isFavorite, setIsFavorite] = useState(article.isFavorite);
   const [settings, setSettings] = useState<UserSettings | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
@@ -61,11 +112,28 @@ export function ArticleDetailPage() {
       if (s) setSettings(s);
     });
   }, []);
+>>>>>>> c52ae1aa68f197f79073ee2c43bb66ebbc7c9797
 
   const handleFavoriteToggle = useCallback(async () => {
     await toggleArticleFavorite(article.id);
     setIsFavorite((prev) => !prev);
+    setArticle((prev) => ({ ...prev, isFavorite: !prev.isFavorite }));
   }, [toggleArticleFavorite, article.id]);
+
+  // Manual retry: fetch full content from original URL
+  const handleLoadFullContent = useCallback(async () => {
+    if (!article.link) return;
+    setIsLoadingFullContent(true);
+    setFullContentError(null);
+    try {
+      const updated = await fetchAndCacheFullContent(article);
+      setArticle(updated);
+    } catch {
+      setFullContentError('Failed to load full article content');
+    } finally {
+      setIsLoadingFullContent(false);
+    }
+  }, [article]);
 
   const sanitizedContent = article.content
     ? sanitizeHTML(article.content)
@@ -202,6 +270,37 @@ export function ArticleDetailPage() {
         </figure>
       )}
 
+<<<<<<< HEAD
+      {/* Loading Full Content Indicator */}
+      {isLoadingFullContent && (
+        <div className="mb-6 flex items-center gap-2 rounded-md border border-border bg-secondary p-3 text-sm text-secondary-foreground">
+          <RefreshCw className="h-4 w-4 animate-spin" />
+          Loading full article content...
+        </div>
+      )}
+
+      {/* Full Content Error */}
+      {fullContentError && (
+        <div className="mb-6 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          {fullContentError}
+        </div>
+      )}
+
+      {/* Article Content (rendered as segments to support inline translations) */}
+      <div className={proseClasses}>
+        {segments.map((segment, index) => (
+          <div key={index}>
+            <div dangerouslySetInnerHTML={{ __html: segment.html }} />
+            {translations[index] && (
+              <p className="my-1 italic text-muted-foreground">{translations[index]}</p>
+            )}
+            {isTranslating && translatingIndex === index && !translations[index] && (
+              <p className="my-1 animate-pulse italic text-muted-foreground">翻译中...</p>
+            )}
+          </div>
+        ))}
+      </div>
+=======
       {/* Article Content with inline translations */}
       <div className={proseClasses}>
         {segments.map((segment, index) => (
@@ -216,19 +315,30 @@ export function ArticleDetailPage() {
           </div>
         ))}
       </div>
+>>>>>>> c52ae1aa68f197f79073ee2c43bb66ebbc7c9797
 
-      {/* Original Article Link */}
+      {/* Original Article Link + Load Full Content */}
       {article.link && (
         <footer className="mt-10 border-t border-border pt-6">
-          <a
-            href={article.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Read original article
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href={article.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Read original article
+            </a>
+            <button
+              onClick={handleLoadFullContent}
+              disabled={isLoadingFullContent}
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoadingFullContent ? 'animate-spin' : ''}`} />
+              Reload full content
+            </button>
+          </div>
         </footer>
       )}
 

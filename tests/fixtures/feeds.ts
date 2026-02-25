@@ -132,6 +132,28 @@ export const EMPTY_FEED = `<?xml version="1.0" encoding="UTF-8"?>
   </channel>
 </rss>`;
 
+export const ATOM_WITH_XHTML_CONTENT = `<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Feed with XHTML Content</title>
+  <link href="https://example.com" rel="alternate"/>
+  <updated>2026-01-25T12:00:00Z</updated>
+  <id>https://example.com/xhtml-feed</id>
+  
+  <entry>
+    <title>XHTML Article</title>
+    <link href="https://example.com/xhtml-article" rel="alternate"/>
+    <id>https://example.com/xhtml-article</id>
+    <updated>2026-01-25T10:00:00Z</updated>
+    <summary>A short summary</summary>
+    <content type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        <p>This is a <strong>full article</strong> with XHTML content.</p>
+        <p>It has multiple paragraphs and <a href="https://example.com">links</a>.</p>
+      </div>
+    </content>
+  </entry>
+</feed>`;
+
 export const OPML_SAMPLE = `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
   <head>
