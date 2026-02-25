@@ -1,7 +1,7 @@
-import { useTheme } from '../../hooks/useTheme';
+import { useTheme } from '@/lib/theme/ThemeProvider';
 
 export function ThemeSelector() {
-  const { theme, setTheme } = useTheme();
+  const { mode: theme, setTheme } = useTheme();
 
   return (
     <div className="space-y-2">
