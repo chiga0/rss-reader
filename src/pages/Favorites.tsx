@@ -1,95 +1,126 @@
 /**
  * Favorites Page
- * Shows all favorited articles
+ * Shows all favorited articles with unfavorite support
  */
 
-import { useEffect, useState } from 'react';
-import { useStore } from '@hooks/useStore';
+import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Heart, HeartOff } from 'lucide-react';
 import { storage } from '@lib/storage';
-import type { Article } from '@models/Feed';
+import { formatRelativeTime } from '@utils/dateFormat';
+import type { Article, Feed } from '@models/Feed';
 
 export function FavoritesPage() {
-  const [favorites, setFavorites] = useState<Article[]>([]);
+  const [favorites, setFavorites] = useState<(Article & { feedTitle?: string })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { selectArticle, selectedArticleId } = useStore();
 
-  useEffect(() => {
-    loadFavorites();
-  }, []);
-
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     try {
-      const allArticles = await storage.getAll('articles');
+      const allArticles = await storage.getAll('articles') as Article[];
+      const allFeeds = await storage.getAll('feeds') as Feed[];
+      const feedMap = new Map(allFeeds.map(f => [f.id, f.title]));
+
       const favoriteArticles = allArticles
         .filter(a => a.isFavorite)
-        .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
+        .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+        .map(a => ({ ...a, feedTitle: feedMap.get(a.feedId) }));
       setFavorites(favoriteArticles);
     } catch (error) {
       console.error('Failed to load favorites', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // If article is selected, show it
-  if (selectedArticleId) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <button
-          onClick={() => selectArticle(null)}
-          className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>返回收藏列表</span>
-        </button>
-        {/* Article will be shown in ArticleView component */}
-      </div>
-    );
-  }
+  useEffect(() => {
+    const init = async () => {
+      await storage.init().catch(() => { /* already initialized */ });
+      await loadFavorites();
+    };
+    init();
+  }, [loadFavorites]);
+
+  const handleUnfavorite = useCallback(async (articleId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const article = await storage.get('articles', articleId) as Article;
+      if (article) {
+        article.isFavorite = false;
+        await storage.put('articles', article);
+        setFavorites(prev => prev.filter(a => a.id !== articleId));
+      }
+    } catch (error) {
+      console.error('Failed to unfavorite article', error);
+    }
+  }, []);
 
   if (isLoading) {
-    return <div className="p-8 text-center">加载中...</div>;
-  }
-
-  if (favorites.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <svg className="mb-4 h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-        <h2 className="mb-2 text-xl font-semibold">暂无收藏</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          点击文章上的收藏按钮来保存您喜欢的文章
-        </p>
+      <div className="flex items-center justify-center py-16">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">我的收藏 ({favorites.length})</h1>
-      <div className="space-y-4">
-        {favorites.map(article => (
-          <article
-            key={article.id}
-            onClick={() => selectArticle(article.id)}
-            className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-          >
-            <h3 className="font-semibold mb-2">{article.title}</h3>
-            {article.summary && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
-                {article.summary}
-              </p>
-            )}
-            <div className="flex items-center gap-4 text-xs text-gray-500">
-              <span>{new Date(article.publishedAt).toLocaleDateString('zh-CN')}</span>
-              {article.author && <span>{article.author}</span>}
-            </div>
-          </article>
-        ))}
-      </div>
+    <div className="mx-auto max-w-4xl">
+      <h1 className="mb-6 text-2xl font-bold text-foreground">
+        Favorites {favorites.length > 0 && <span className="text-muted-foreground">({favorites.length})</span>}
+      </h1>
+
+      {favorites.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
+          <Heart className="mb-4 h-12 w-12 text-muted-foreground" />
+          <h2 className="mb-2 text-lg font-semibold text-foreground">No favorites yet</h2>
+          <p className="text-sm text-muted-foreground">
+            Articles you favorite will appear here for easy access
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {favorites.map((article) => (
+            <Link
+              key={article.id}
+              to={`/articles/${article.id}`}
+              className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
+            >
+              <div className="min-w-0 flex-1">
+                <h3 className="line-clamp-2 text-sm font-semibold text-card-foreground">
+                  {article.title}
+                </h3>
+                {article.summary && (
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                    {article.summary}
+                  </p>
+                )}
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                  {article.feedTitle && <span>{article.feedTitle}</span>}
+                  {article.author && <span>• {article.author}</span>}
+                  <span>• {formatRelativeTime(new Date(article.publishedAt))}</span>
+                </div>
+              </div>
+
+              {article.imageUrl && (
+                <img
+                  src={article.imageUrl}
+                  alt=""
+                  className="h-16 w-16 shrink-0 rounded-md object-cover"
+                  loading="lazy"
+                />
+              )}
+
+              <button
+                onClick={(e) => handleUnfavorite(article.id, e)}
+                className="shrink-0 rounded-md p-1.5 text-red-500 transition-colors hover:bg-destructive/10"
+                title="Remove from favorites"
+              >
+                <HeartOff className="h-4 w-4" />
+              </button>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

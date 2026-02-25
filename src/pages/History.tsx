@@ -1,107 +1,128 @@
 /**
  * History Page
- * Shows reading history (read articles)
+ * Shows reading history - articles that have been read, ordered by read time
  */
 
-import { useEffect, useState } from 'react';
-import { useStore } from '@hooks/useStore';
+import { useEffect, useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Clock, Heart } from 'lucide-react';
 import { storage } from '@lib/storage';
-import type { Article } from '@models/Feed';
+import type { Article, Feed } from '@models/Feed';
 
 export function HistoryPage() {
-  const [history, setHistory] = useState<Article[]>([]);
+  const [history, setHistory] = useState<(Article & { feedTitle?: string })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { selectArticle, selectedArticleId } = useStore();
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
-      const allArticles = await storage.getAll('articles');
+      const allArticles = await storage.getAll('articles') as Article[];
+      const allFeeds = await storage.getAll('feeds') as Feed[];
+      const feedMap = new Map(allFeeds.map(f => [f.id, f.title]));
+
       const readArticles = allArticles
         .filter(a => a.readAt)
         .sort((a, b) => {
           const aTime = a.readAt ? new Date(a.readAt).getTime() : 0;
           const bTime = b.readAt ? new Date(b.readAt).getTime() : 0;
           return bTime - aTime;
-        });
+        })
+        .slice(0, 50) // Last 50 read articles
+        .map(a => ({ ...a, feedTitle: feedMap.get(a.feedId) }));
       setHistory(readArticles);
     } catch (error) {
       console.error('Failed to load history', error);
     } finally {
       setIsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const init = async () => {
+      await storage.init().catch(() => { /* already initialized */ });
+      await loadHistory();
+    };
+    init();
+  }, [loadHistory]);
+
+  const formatReadTime = (date: Date | string | null) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHour < 24) return `${diffHour}h ago`;
+    if (diffDay < 7) return `${diffDay}d ago`;
+    return d.toLocaleDateString();
   };
 
-  // If article is selected, show back button
-  if (selectedArticleId) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <button
-          onClick={() => selectArticle(null)}
-          className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-          <span>返回历史记录</span>
-        </button>
-      </div>
-    );
-  }
-
   if (isLoading) {
-    return <div className="p-8 text-center">加载中...</div>;
-  }
-
-  if (history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <svg className="mb-4 h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h2 className="mb-2 text-xl font-semibold">暂无历史记录</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          您阅读过的文章将显示在这里
-        </p>
+      <div className="flex items-center justify-center py-16">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">阅读历史 ({history.length})</h1>
-      <div className="space-y-4">
-        {history.map(article => (
-          <article
-            key={article.id}
-            onClick={() => selectArticle(article.id)}
-            className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h3 className="font-semibold mb-2">{article.title}</h3>
+    <div className="mx-auto max-w-4xl">
+      <h1 className="mb-6 text-2xl font-bold text-foreground">
+        Reading History {history.length > 0 && <span className="text-muted-foreground">({history.length})</span>}
+      </h1>
+
+      {history.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
+          <Clock className="mb-4 h-12 w-12 text-muted-foreground" />
+          <h2 className="mb-2 text-lg font-semibold text-foreground">No reading history</h2>
+          <p className="text-sm text-muted-foreground">
+            Articles you read will appear here
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {history.map((article) => (
+            <Link
+              key={article.id}
+              to={`/articles/${article.id}`}
+              className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="line-clamp-2 text-sm font-medium text-card-foreground">
+                    {article.title}
+                  </h3>
+                  {article.isFavorite && (
+                    <Heart className="h-3.5 w-3.5 shrink-0 fill-red-500 text-red-500" />
+                  )}
+                </div>
                 {article.summary && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
                     {article.summary}
                   </p>
                 )}
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span>阅读于: {new Date(article.readAt!).toLocaleString('zh-CN')}</span>
-                  {article.author && <span>{article.author}</span>}
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-muted-foreground">
+                  {article.feedTitle && <span>{article.feedTitle}</span>}
+                  {article.author && <span>• {article.author}</span>}
+                  <span>• Read {formatReadTime(article.readAt)}</span>
                 </div>
               </div>
-              {article.isFavorite && (
-                <svg className="h-5 w-5 text-yellow-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-                </svg>
+
+              {article.imageUrl && (
+                <img
+                  src={article.imageUrl}
+                  alt=""
+                  className="h-16 w-16 shrink-0 rounded-md object-cover"
+                  loading="lazy"
+                />
               )}
-            </div>
-          </article>
-        ))}
-      </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
