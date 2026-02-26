@@ -37,11 +37,13 @@ export function Navbar() {
           <DesktopNav />
         </div>
         <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="icon" asChild aria-label="Search">
-            <Link to="/search">
-              <Search className="h-5 w-5" />
-            </Link>
-          </Button>
+          <Link
+            to="/search"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
