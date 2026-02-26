@@ -1,9 +1,16 @@
 [build]
   functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
 
 [functions]
   node_bundler = "esbuild"
 
+# Edge Function: AI 聊天代理（流式响应，无超时限制）
+[[edge_functions]]
+  function = "chat"
+  path = "/api/chat"
+
+# 其余 /api/* 路由仍走普通 Netlify Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
