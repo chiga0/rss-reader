@@ -11,6 +11,8 @@ import { ArticleDetailPage } from '@/pages/ArticleDetailPage';
 import { FavoritesPage } from '@/pages/Favorites';
 import { HistoryPage } from '@/pages/History';
 import Settings from '@/pages/Settings';
+import { FeedManagementPage } from '@/pages/FeedManagementPage';
+import { SearchPage } from '@/pages/SearchPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
 
@@ -60,6 +62,22 @@ export const routes: Route[] = [
     handle: {
       title: 'History',
       icon: 'clock',
+    },
+  },
+  {
+    path: '/feed-management',
+    element: <FeedManagementPage />,
+    handle: {
+      title: 'Manage Subscriptions',
+      icon: 'list',
+    },
+  },
+  {
+    path: '/search',
+    element: <SearchPage />,
+    handle: {
+      title: 'Search',
+      icon: 'search',
     },
   },
   {
