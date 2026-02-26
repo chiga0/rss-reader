@@ -36,12 +36,15 @@ export function ArticleView() {
     if (!article) return;
     setAiError(null);
     setAiLoading('summary');
+    setAiSummary('');
     try {
       const settings = await storage.get('settings', 'default');
       if (!settings) throw new Error('Settings not found');
       const text = getPlainText(article.content || article.summary || article.title);
-      const summary = await summarizeText(text, settings);
-      setAiSummary(summary);
+      // Stream summary tokens for real-time display
+      await summarizeText(text, settings, (chunk) => {
+        setAiSummary((prev) => (prev || '') + chunk);
+      });
     } catch (err) {
       setAiError(err instanceof Error ? err.message : 'Failed to summarize');
     } finally {
@@ -53,12 +56,15 @@ export function ArticleView() {
     if (!article) return;
     setAiError(null);
     setAiLoading('translate');
+    setTranslatedContent('');
     try {
       const settings = await storage.get('settings', 'default');
       if (!settings) throw new Error('Settings not found');
       const text = getPlainText(article.content || article.summary || article.title);
-      const translated = await translateText(text, settings);
-      setTranslatedContent(translated);
+      // Stream translation tokens for real-time display
+      await translateText(text, settings, '中文', (chunk) => {
+        setTranslatedContent((prev) => (prev || '') + chunk);
+      });
     } catch (err) {
       setAiError(err instanceof Error ? err.message : 'Failed to translate');
     } finally {

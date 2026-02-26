@@ -133,10 +133,6 @@ export function ArticleDetailPage() {
   );
 
   const handleTranslate = useCallback(async () => {
-    if (!settings?.aiApiKey) {
-      setError('请先在设置中配置 AI API Key');
-      return;
-    }
     if (isTranslating) return;
 
     // If already translated, toggle off
@@ -153,8 +149,10 @@ export function ArticleDetailPage() {
         const text = segments[i].text;
         if (!text || text.length < 2) continue;
         setTranslatingIndex(i);
-        const translated = await translateText(text, settings);
-        setTranslations((prev) => ({ ...prev, [i]: translated }));
+        // Stream translation chunk-by-chunk for real-time feedback
+        await translateText(text, settings!, '中文', (chunk) => {
+          setTranslations((prev) => ({ ...prev, [i]: (prev[i] || '') + chunk }));
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : '翻译失败');
@@ -165,10 +163,6 @@ export function ArticleDetailPage() {
   }, [settings, isTranslating, translations, segments]);
 
   const handleSummarize = useCallback(async () => {
-    if (!settings?.aiApiKey) {
-      setError('请先在设置中配置 AI API Key');
-      return;
-    }
     if (isSummarizing) return;
 
     // If already summarized, toggle off
@@ -178,11 +172,14 @@ export function ArticleDetailPage() {
     }
 
     setIsSummarizing(true);
+    setSummary('');
     setError(null);
 
     try {
-      const result = await summarizeText(plainText, settings);
-      setSummary(result);
+      // Stream summary tokens for real-time display
+      await summarizeText(plainText, settings!, (chunk) => {
+        setSummary((prev) => (prev || '') + chunk);
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'AI 总结失败');
     } finally {
