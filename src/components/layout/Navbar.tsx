@@ -1,14 +1,11 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, RefreshCw } from 'lucide-react';
+import { Search, RefreshCw, Rss } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DesktopNav } from './DesktopNav';
 import { MobileNav } from './MobileNav';
 import { syncService } from '@services/syncService';
 import { useStore } from '@hooks/useStore';
-import { ThemeToggle } from './ThemeToggle';
-import { Rss } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 export function Navbar() {
   const { loadFeeds } = useStore();
