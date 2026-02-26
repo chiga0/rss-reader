@@ -11,7 +11,7 @@ export function ToastNotification() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div className="fixed bottom-16 right-4 z-[100] flex flex-col gap-2 pointer-events-none sm:bottom-4">
       {toasts.map(toast => (
         <div
           key={toast.id}

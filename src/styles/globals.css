@@ -15,7 +15,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -46,15 +46,17 @@ a:hover {
 /* Focus styles for accessibility */
 button:focus,
 a:focus,
-input:focus {
-  outline: 2px solid var(--primary-color);
+input:focus,
+select:focus {
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
 /* Remove outline on click (keep on Tab navigation) */
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible),
-input:focus:not(:focus-visible) {
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
   outline: none;
 }
 
@@ -65,8 +67,13 @@ input:focus:not(:focus-visible) {
   }
 }
 
-/* Smooth transitions for theme changes */
-* {
+/* Smooth transitions for theme changes - scoped to key elements only */
+body,
+.bg-background,
+.bg-card,
+.bg-secondary,
+.bg-accent,
+.bg-popover {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
