@@ -63,6 +63,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "class-variance-authority": "^0.7.1",

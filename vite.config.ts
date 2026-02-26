@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import type { PluginOption, ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 import { VitePWA } from 'vite-plugin-pwa';
 import { resolve } from 'path';
 import tailwindcss from '@tailwindcss/vite';
@@ -68,6 +69,7 @@ function aiProxyPlugin(): PluginOption {
 export default defineConfig({
   plugins: [
     aiProxyPlugin(),
+    basicSsl(),
     react(),
     tailwindcss(),
     VitePWA({
@@ -100,6 +102,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    https: true,
     open: true,
     host: true,
   },
