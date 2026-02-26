@@ -69,17 +69,17 @@ export function OPMLImportDialog() {
           accept=".opml,.xml"
           onChange={handleFileSelect}
           disabled={isImporting}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary/90 disabled:opacity-50"
+          className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 disabled:opacity-50"
         />
       </div>
 
       {isImporting && progress.total > 0 && (
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex justify-between text-sm text-muted-foreground">
             <span>Importing feeds...</span>
             <span>{progress.current} / {progress.total}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
+          <div className="w-full bg-secondary rounded-full h-2">
             <div 
               className="bg-primary h-2 rounded-full transition-all"
               style={{ width: `${(progress.current / progress.total) * 100}%` }}
@@ -91,8 +91,8 @@ export function OPMLImportDialog() {
       {result && (
         <div className={`rounded-lg p-4 ${
           result.errors.length > 0 
-            ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'
-            : 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+            ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300'
+            : 'bg-green-500/10 text-green-700 dark:text-green-300'
         }`}>
           <p className="font-medium">
             Import completed: {result.imported} successful, {result.failed} failed

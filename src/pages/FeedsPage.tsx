@@ -194,8 +194,9 @@ export function FeedsPage() {
                 {/* Delete Button */}
                 <button
                   onClick={(e) => handleDelete(feed.id, e)}
-                  className="shrink-0 rounded-md p-2 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                  className="shrink-0 rounded-md p-2 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
                   title="Unsubscribe"
+                  aria-label={`Unsubscribe from ${feed.title}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
