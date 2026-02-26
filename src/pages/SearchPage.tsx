@@ -39,7 +39,7 @@ export function SearchPage() {
       const matchedFeeds = allFeeds.filter(
         (f) =>
           f.title.toLowerCase().includes(q) ||
-          f.description.toLowerCase().includes(q) ||
+          f.description?.toLowerCase().includes(q) ||
           f.url.toLowerCase().includes(q)
       );
 
@@ -49,7 +49,7 @@ export function SearchPage() {
         .filter(
           (a) =>
             a.title.toLowerCase().includes(q) ||
-            a.summary.toLowerCase().includes(q)
+            a.summary?.toLowerCase().includes(q)
         )
         .slice(0, 50); // Limit results
 
