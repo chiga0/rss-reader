@@ -93,19 +93,19 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
-          className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-gray-800"
+          className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl border border-border"
           role="dialog"
           aria-modal="true"
           aria-labelledby="dialog-title"
         >
-          <h2 id="dialog-title" className="mb-4 text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="dialog-title" className="mb-4 text-xl font-semibold text-card-foreground">
             Add RSS Feed
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* URL Input */}
             <div>
-              <label htmlFor="feed-url" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="feed-url" className="mb-1 block text-sm font-medium text-card-foreground">
                 Feed URL
               </label>
               <input
@@ -114,7 +114,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com/feed.xml"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-primary"
+                className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 disabled={isSubmitting}
                 autoFocus
               />
@@ -122,14 +122,14 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
 
             {/* Category Dropdown */}
             <div>
-              <label htmlFor="category" className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="category" className="mb-1 block text-sm font-medium text-card-foreground">
                 Category (Optional)
               </label>
               <select
                 id="category"
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:focus:border-primary"
+                className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 disabled={isSubmitting}
               >
                 <option value="">No category</option>
@@ -143,14 +143,14 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
 
             {/* Error Message */}
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
+              <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
                 {error}
               </div>
             )}
 
             {/* Offline Warning */}
             {!isOnline && (
-              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200">
+              <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-300">
                 ⚠️ You're currently offline. Connect to the internet to add new feeds.
               </div>
             )}
@@ -161,14 +161,14 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
                 type="button"
                 onClick={handleCancel}
                 disabled={isSubmitting}
-                className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                className="flex-1 rounded-lg border border-border bg-secondary px-4 py-2 font-medium text-secondary-foreground hover:bg-accent disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !isOnline}
-                className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                 title={!isOnline ? 'Cannot add feeds while offline' : ''}
               >
                 {isSubmitting ? 'Adding...' : 'Add Feed'}
