@@ -8,8 +8,6 @@
  * API credentials are managed server-side via environment variables.
  */
 
-import type { UserSettings } from '@models/Feed';
-
 /** Callback invoked with each incremental text chunk during streaming. */
 export type OnChunkCallback = (chunk: string) => void;
 
@@ -131,13 +129,11 @@ const MAX_SUMMARY_INPUT_LENGTH = 4000;
  * Pass `onChunk` to receive incremental streaming output.
  *
  * @param text         - Source text to translate
- * @param _settings    - UserSettings (kept for API compatibility; credentials are server-side)
  * @param targetLanguage - Target language name, e.g. '中文', 'English'
  * @param onChunk      - Optional streaming callback
  */
 export async function translateText(
   text: string,
-  _settings: UserSettings,
   targetLanguage = '中文',
   onChunk?: OnChunkCallback,
   signal?: AbortSignal,
@@ -157,12 +153,10 @@ export async function translateText(
  * Pass `onChunk` to receive incremental streaming output.
  *
  * @param text      - Article text to summarize
- * @param _settings - UserSettings (kept for API compatibility; credentials are server-side)
  * @param onChunk   - Optional streaming callback
  */
 export async function summarizeText(
   text: string,
-  _settings: UserSettings,
   onChunk?: OnChunkCallback,
   signal?: AbortSignal,
 ): Promise<string> {

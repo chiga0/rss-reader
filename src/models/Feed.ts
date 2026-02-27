@@ -50,10 +50,6 @@ export interface UserSettings {
   maxArticlesPerFeed: number;
   enableNotifications: boolean;
   enableBackgroundSync: boolean;
-  aiApiKey?: string;
-  aiBaseUrl?: string;
-  aiModel?: string;
-  aiProvider?: 'openai' | 'custom';
 }
 
 export interface SyncState {

@@ -13,8 +13,7 @@ import { formatRelativeTime } from '@utils/dateFormat';
 import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
-import { storage } from '@lib/storage';
-import type { Feed, Article, UserSettings } from '@/models';
+import type { Feed, Article } from '@/models';
 
 interface ArticleDetailLoaderData {
   article: Article;
@@ -55,7 +54,6 @@ export function ArticleDetailPage() {
   const [fullContentError, setFullContentError] = useState<string | null>(null);
 
   const [isFavorite, setIsFavorite] = useState(article.isFavorite);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -106,13 +104,6 @@ export function ArticleDetailPage() {
     loadFullContent();
     return () => { cancelled = true; };
   }, [loaderArticle]);
-
-  useEffect(() => {
-    storage.get('settings', 'default').then((s) => {
-      if (s) setSettings(s);
-    });
-  }, []);
-  // settings are loaded above
 
   const handleFavoriteToggle = useCallback(async () => {
     await toggleArticleFavorite(article.id);
@@ -173,7 +164,7 @@ export function ArticleDetailPage() {
         if (!text || text.length < 2) continue;
         setTranslatingIndex(i);
         // Stream translation chunk-by-chunk for real-time feedback
-        await translateText(text, settings!, '中文', (chunk) => {
+        await translateText(text, '中文', (chunk) => {
           setTranslations((prev) => ({ ...prev, [i]: (prev[i] || '') + chunk }));
         }, controller.signal);
       }
@@ -186,7 +177,7 @@ export function ArticleDetailPage() {
       setIsTranslating(false);
       setTranslatingIndex(-1);
     }
-  }, [settings, isTranslating, translations, segments]);
+  }, [isTranslating, translations, segments]);
 
   const handleSummarize = useCallback(async () => {
     // If already summarizing, cancel the ongoing operation
@@ -211,7 +202,7 @@ export function ArticleDetailPage() {
 
     try {
       // Stream summary tokens for real-time display
-      await summarizeText(plainText, settings!, (chunk) => {
+      await summarizeText(plainText, (chunk) => {
         setSummary((prev) => (prev || '') + chunk);
       }, controller.signal);
       // Defer scroll slightly to allow React to paint the summary before scrolling
@@ -226,7 +217,7 @@ export function ArticleDetailPage() {
       clearTimeout(timeoutId);
       setIsSummarizing(false);
     }
-  }, [settings, isSummarizing, summary, plainText]);
+  }, [isSummarizing, summary, plainText]);
 
   const proseClasses = `prose prose-neutral max-w-none dark:prose-invert
     prose-headings:text-foreground prose-headings:font-semibold

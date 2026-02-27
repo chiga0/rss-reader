@@ -8,7 +8,6 @@ import { useStore } from '../../hooks/useStore';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 import { translateText, summarizeText } from '@services/aiService';
-import { storage } from '@lib/storage';
 
 export function ArticleView() {
   const { articles, selectedArticleId, isLoading, error, setError, toggleArticleFavorite, selectArticle } = useStore();
@@ -38,11 +37,9 @@ export function ArticleView() {
     setAiLoading('summary');
     setAiSummary('');
     try {
-      const settings = await storage.get('settings', 'default');
-      if (!settings) throw new Error('Settings not found');
       const text = getPlainText(article.content || article.summary || article.title);
       // Stream summary tokens for real-time display
-      await summarizeText(text, settings, (chunk) => {
+      await summarizeText(text, (chunk) => {
         setAiSummary((prev) => (prev || '') + chunk);
       });
     } catch (err) {
@@ -58,11 +55,9 @@ export function ArticleView() {
     setAiLoading('translate');
     setTranslatedContent('');
     try {
-      const settings = await storage.get('settings', 'default');
-      if (!settings) throw new Error('Settings not found');
       const text = getPlainText(article.content || article.summary || article.title);
       // Stream translation tokens for real-time display
-      await translateText(text, settings, '中文', (chunk) => {
+      await translateText(text, '中文', (chunk) => {
         setTranslatedContent((prev) => (prev || '') + chunk);
       });
     } catch (err) {
