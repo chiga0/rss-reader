@@ -1,10 +1,8 @@
 /**
  * ArticleActionBar - Fixed bottom banner with Favorite, Translate, and AI Summary buttons.
- * Auto-hides on scroll, reappears when scrolling stops.
  */
 
 import { Heart, Languages, Sparkles, Loader2 } from 'lucide-react';
-import { useScrollVisibility } from '@hooks/useScrollVisibility';
 
 interface ArticleActionBarProps {
   isFavorite: boolean;
@@ -23,13 +21,9 @@ export function ArticleActionBar({
   onTranslate,
   onSummarize,
 }: ArticleActionBarProps) {
-  const visible = useScrollVisibility(300);
-
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm transition-transform duration-300 ${
-        visible ? 'translate-y-0' : 'translate-y-full'
-      }`}
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="mx-auto flex max-w-3xl items-center justify-around px-4 py-2">
