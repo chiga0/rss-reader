@@ -32,8 +32,11 @@ export function FeedDetailPage() {
     setFeed(loaderData.feed);
   }, [loaderData]);
 
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    setRefreshError(null);
     try {
       await fetchAndStoreArticles(feed.id);
       const updatedArticles = await getArticlesForFeed(feed.id);
@@ -43,7 +46,7 @@ export function FeedDetailPage() {
         setFeed(updatedFeed);
       }
     } catch {
-      // refresh failed silently
+      setRefreshError('Failed to refresh feed');
     } finally {
       setIsRefreshing(false);
     }
@@ -110,6 +113,13 @@ export function FeedDetailPage() {
       {loaderData.isOffline && (
         <div className="mb-4 rounded-md border border-border bg-secondary p-3 text-sm text-secondary-foreground">
           Offline Mode — Showing cached articles
+        </div>
+      )}
+
+      {refreshError && (
+        <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          {refreshError}
+          <button onClick={() => setRefreshError(null)} className="ml-2 underline">Dismiss</button>
         </div>
       )}
 
