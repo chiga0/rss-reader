@@ -108,21 +108,21 @@ export function FeedsPage() {
   }, [unsubscribeFeed]);
 
   // Filter feeds based on the current filter
+  const countsLoaded = Object.keys(articleCounts).length > 0;
   const filteredFeeds = useMemo(() => {
-    if (feedsFilter === 'all') return feeds;
+    if (feedsFilter === 'all' || !countsLoaded) return feeds;
     return feeds.filter(feed => {
       const counts = articleCounts[feed.id];
-      if (!counts) return feedsFilter === 'unread'; // show by default when counts not loaded
+      if (!counts) return false;
       if (feedsFilter === 'unread') return counts.unread > 0;
       if (feedsFilter === 'starred') return counts.starred > 0;
       return true;
     });
-  }, [feeds, feedsFilter, articleCounts]);
+  }, [feeds, feedsFilter, articleCounts, countsLoaded]);
 
   // Group filtered feeds by category
   const groupedFeeds = useMemo(() => {
     const groups: { id: string; name: string; feeds: typeof filteredFeeds }[] = [];
-    const categoryMap = new Map(categories.map(c => [c.id, c]));
 
     // Group by category
     const grouped = new Map<string, typeof filteredFeeds>();
@@ -298,7 +298,7 @@ export function FeedsPage() {
         className={`fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-card/95 backdrop-blur-sm transition-transform duration-300 ${
           isBottomBarVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0)' }}
       >
         <div className="mx-auto flex max-w-4xl items-center justify-around px-4 py-2">
           {filterTabs.map(({ key, label, icon: Icon }) => (
