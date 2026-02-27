@@ -43,29 +43,27 @@ export function ArticleActionBar({
         {/* Translate */}
         <button
           onClick={onTranslate}
-          disabled={isTranslating}
-          className="inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+          className="inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           {isTranslating ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <Languages className="h-5 w-5" />
           )}
-          <span>{isTranslating ? '翻译中...' : '翻译'}</span>
+          <span>{isTranslating ? '停止翻译' : '翻译'}</span>
         </button>
 
         {/* AI Summary */}
         <button
           onClick={onSummarize}
-          disabled={isSummarizing}
-          className="inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+          className="inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           {isSummarizing ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <Sparkles className="h-5 w-5" />
           )}
-          <span>{isSummarizing ? '总结中...' : 'AI 总结'}</span>
+          <span>{isSummarizing ? '停止总结' : 'AI 总结'}</span>
         </button>
       </div>
     </div>

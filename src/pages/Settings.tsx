@@ -3,7 +3,6 @@ import { RefreshIntervalSelector } from '@components/Settings/RefreshIntervalSel
 import { ThemeSelector } from '../components/Settings/ThemeSelector';
 import { OPMLExportButton } from '@components/Settings/OPMLExportButton';
 import { OPMLImportDialog } from '@components/Settings/OPMLImportDialog';
-import { AISettings } from '@components/Settings/AISettings';
 import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
@@ -174,17 +173,6 @@ export default function Settings() {
               <OPMLImportDialog />
             </div>
           </div>
-        </div>
-
-        {/* AI Settings Section */}
-        <div className="rounded-lg border border-border bg-card p-6">
-          <h2 className="mb-1 text-lg font-semibold text-card-foreground">
-            AI Features
-          </h2>
-          <p className="mb-4 text-xs text-muted-foreground">
-            Configure an OpenAI-compatible API to enable article translation and summarization
-          </p>
-          <AISettings />
         </div>
       </div>
 
