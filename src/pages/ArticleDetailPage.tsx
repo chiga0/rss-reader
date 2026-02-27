@@ -4,7 +4,7 @@
  * Renders sanitized HTML content with inline translation and AI summary support
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, ExternalLink, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
@@ -43,6 +43,9 @@ function parseContentSegments(html: string): { html: string; text: string }[] {
   return segments;
 }
 
+/** Maximum milliseconds to wait for an AI operation before auto-aborting. */
+const AI_OPERATION_TIMEOUT_MS = 60_000;
+
 export function ArticleDetailPage() {
   const { article: loaderArticle, feed } = useLoaderData() as ArticleDetailLoaderData;
   const navigate = useNavigate();
@@ -59,6 +62,17 @@ export function ArticleDetailPage() {
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const summaryRef = useRef<HTMLDivElement>(null);
+
+  // Cancel any running AI operation when the article changes or the page unmounts
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
+  }, [loaderArticle.id]);
 
   // Auto-fetch full content from original URL if RSS content appears incomplete
   useEffect(() => {
@@ -133,7 +147,11 @@ export function ArticleDetailPage() {
   );
 
   const handleTranslate = useCallback(async () => {
-    if (isTranslating) return;
+    // If already translating, cancel the ongoing operation
+    if (isTranslating) {
+      abortControllerRef.current?.abort();
+      return;
+    }
 
     // If already translated, toggle off
     if (Object.keys(translations).length > 0) {
@@ -141,35 +159,51 @@ export function ArticleDetailPage() {
       return;
     }
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), AI_OPERATION_TIMEOUT_MS);
+
     setIsTranslating(true);
     setError(null);
 
     try {
       for (let i = 0; i < segments.length; i++) {
+        if (controller.signal.aborted) break;
         const text = segments[i].text;
         if (!text || text.length < 2) continue;
         setTranslatingIndex(i);
         // Stream translation chunk-by-chunk for real-time feedback
         await translateText(text, settings!, '中文', (chunk) => {
           setTranslations((prev) => ({ ...prev, [i]: (prev[i] || '') + chunk }));
-        });
+        }, controller.signal);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '翻译失败');
+      if ((err as Error)?.name !== 'AbortError') {
+        setError(err instanceof Error ? err.message : '翻译失败');
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsTranslating(false);
       setTranslatingIndex(-1);
     }
   }, [settings, isTranslating, translations, segments]);
 
   const handleSummarize = useCallback(async () => {
-    if (isSummarizing) return;
+    // If already summarizing, cancel the ongoing operation
+    if (isSummarizing) {
+      abortControllerRef.current?.abort();
+      return;
+    }
 
     // If already summarized, toggle off
     if (summary) {
       setSummary(null);
       return;
     }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const timeoutId = setTimeout(() => controller.abort(), AI_OPERATION_TIMEOUT_MS);
 
     setIsSummarizing(true);
     setSummary('');
@@ -179,10 +213,17 @@ export function ArticleDetailPage() {
       // Stream summary tokens for real-time display
       await summarizeText(plainText, settings!, (chunk) => {
         setSummary((prev) => (prev || '') + chunk);
-      });
+      }, controller.signal);
+      // Defer scroll slightly to allow React to paint the summary before scrolling
+      setTimeout(() => {
+        summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'AI 总结失败');
+      if ((err as Error)?.name !== 'AbortError') {
+        setError(err instanceof Error ? err.message : 'AI 总结失败');
+      }
     } finally {
+      clearTimeout(timeoutId);
       setIsSummarizing(false);
     }
   }, [settings, isSummarizing, summary, plainText]);
@@ -228,7 +269,7 @@ export function ArticleDetailPage() {
 
       {/* AI Summary */}
       {summary && (
-        <div className="mb-8 rounded-lg border border-primary/30 bg-primary/5 p-4">
+        <div ref={summaryRef} className="mb-8 rounded-lg border border-primary/30 bg-primary/5 p-4">
           <div className="mb-2 text-sm font-semibold text-primary">AI 总结</div>
           <p className="text-sm leading-relaxed text-foreground">{summary}</p>
         </div>
