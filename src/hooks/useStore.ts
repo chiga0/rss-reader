@@ -30,6 +30,7 @@ interface StoreState {
   isLoading: boolean;
   error: string | null;
   isAddFeedDialogOpen: boolean;
+  feedsFilter: 'starred' | 'unread' | 'all';
 
   // Actions - Feeds
   loadFeeds: () => Promise<void>;
@@ -64,6 +65,7 @@ interface StoreState {
   setError: (error: string | null) => void;
   openAddFeedDialog: () => void;
   closeAddFeedDialog: () => void;
+  setFeedsFilter: (filter: 'starred' | 'unread' | 'all') => void;
 }
 
 export const useStore = create<StoreState>()(
@@ -80,6 +82,7 @@ export const useStore = create<StoreState>()(
       isLoading: false,
       error: null,
       isAddFeedDialogOpen: false,
+      feedsFilter: 'unread' as const,
 
       // Load all feeds from storage
       loadFeeds: async () => {
@@ -403,6 +406,11 @@ export const useStore = create<StoreState>()(
       // Close add feed dialog
       closeAddFeedDialog: () => {
         set({ isAddFeedDialogOpen: false, error: null });
+      },
+
+      // Set feeds filter
+      setFeedsFilter: (filter: 'starred' | 'unread' | 'all') => {
+        set({ feedsFilter: filter });
       },
     }),
     { name: 'RSS Reader Store' }
