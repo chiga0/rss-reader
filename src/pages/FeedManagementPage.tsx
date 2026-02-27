@@ -4,13 +4,14 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { Pencil, Trash2, Rss, Check, X } from 'lucide-react';
+import { Pencil, Trash2, Rss, Check, X, Plus } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
+import { AddFeedDialog } from '@components/AddFeedDialog/AddFeedDialog';
 import type { Feed } from '@models/Feed';
 
 export function FeedManagementPage() {
-  const { feeds, loadFeeds, unsubscribeFeed, updateFeed } = useStore();
+  const { feeds, loadFeeds, unsubscribeFeed, updateFeed, isAddFeedDialogOpen, openAddFeedDialog, closeAddFeedDialog } = useStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editUrl, setEditUrl] = useState('');
@@ -55,15 +56,31 @@ export function FeedManagementPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-8 text-2xl font-bold text-foreground">Manage Subscriptions</h1>
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Manage Subscriptions</h1>
+        <button
+          onClick={openAddFeedDialog}
+          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Add Feed</span>
+        </button>
+      </div>
 
       {feeds.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <Rss className="mb-4 h-12 w-12 text-muted-foreground" />
           <h2 className="mb-2 text-lg font-semibold text-foreground">No subscriptions</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="mb-6 text-sm text-muted-foreground">
             Add feeds from the Feeds page to manage them here
           </p>
+          <button
+            onClick={openAddFeedDialog}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" />
+            Add Your First Feed
+          </button>
         </div>
       )}
 
@@ -159,6 +176,8 @@ export function FeedManagementPage() {
           ))}
         </div>
       )}
+      {/* Add Feed Dialog */}
+      <AddFeedDialog isOpen={isAddFeedDialogOpen} onClose={closeAddFeedDialog} />
     </div>
   );
 }

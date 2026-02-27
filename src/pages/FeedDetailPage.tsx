@@ -3,11 +3,13 @@
  * Shows article list with read/unread status, mark-as-read, and favorites
  */
 
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
 import { formatRelativeTime } from '@utils/dateFormat';
+import { fetchAndStoreArticles, getArticlesForFeed } from '@services/feedService';
+import { storage } from '@lib/storage';
 import type { Feed, Article } from '@/models';
 
 interface FeedDetailLoaderData {
@@ -17,14 +19,43 @@ interface FeedDetailLoaderData {
 }
 
 export function FeedDetailPage() {
-  const { feed, articles, isOffline } = useLoaderData() as FeedDetailLoaderData;
+  const loaderData = useLoaderData() as FeedDetailLoaderData;
   const navigate = useNavigate();
   const { toggleArticleFavorite } = useStore();
+  const [articles, setArticles] = useState<Article[]>(loaderData.articles);
+  const [feed, setFeed] = useState<Feed>(loaderData.feed);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Sync with loader data when navigating to a different feed
+  useEffect(() => {
+    setArticles(loaderData.articles);
+    setFeed(loaderData.feed);
+  }, [loaderData]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchAndStoreArticles(feed.id);
+      const updatedArticles = await getArticlesForFeed(feed.id);
+      setArticles(updatedArticles);
+      const updatedFeed = await storage.get('feeds', feed.id);
+      if (updatedFeed) {
+        setFeed(updatedFeed);
+      }
+    } catch {
+      // refresh failed silently
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [feed.id]);
 
   const handleFavoriteToggle = useCallback(async (articleId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     await toggleArticleFavorite(articleId);
+    setArticles(prev =>
+      prev.map(a => a.id === articleId ? { ...a, isFavorite: !a.isFavorite } : a)
+    );
   }, [toggleArticleFavorite]);
 
   // Sort articles by publishedAt descending
@@ -50,7 +81,18 @@ export function FeedDetailPage() {
             <img src={feed.iconUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold text-foreground">{feed.title}</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-foreground">{feed.title}</h1>
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent disabled:opacity-50"
+                title="Refresh feed"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+              </button>
+            </div>
             {feed.description && (
               <p className="mt-1 text-sm text-muted-foreground">{feed.description}</p>
             )}
@@ -65,7 +107,7 @@ export function FeedDetailPage() {
         </div>
       </div>
 
-      {isOffline && (
+      {loaderData.isOffline && (
         <div className="mb-4 rounded-md border border-border bg-secondary p-3 text-sm text-secondary-foreground">
           Offline Mode — Showing cached articles
         </div>
@@ -85,9 +127,8 @@ export function FeedDetailPage() {
           {sortedArticles.map((article) => {
             const isUnread = !article.readAt;
             return (
-              <Link
+              <div
                 key={article.id}
-                to={`/articles/${article.id}`}
                 className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
               >
                 {/* Unread Indicator */}
@@ -95,8 +136,11 @@ export function FeedDetailPage() {
                   {isUnread && <div className="h-2 w-2 rounded-full bg-primary" />}
                 </div>
 
-                {/* Article Content */}
-                <div className="min-w-0 flex-1">
+                {/* Article Content - clickable link */}
+                <Link
+                  to={`/articles/${article.id}`}
+                  className="min-w-0 flex-1"
+                >
                   <h3
                     className={`line-clamp-2 text-sm ${
                       isUnread
@@ -115,7 +159,7 @@ export function FeedDetailPage() {
                     {article.author && <span>{article.author}</span>}
                     <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
                   </div>
-                </div>
+                </Link>
 
                 {/* Thumbnail */}
                 {article.imageUrl && (
@@ -139,7 +183,7 @@ export function FeedDetailPage() {
                 >
                   <Heart className="h-4 w-4" fill={article.isFavorite ? 'currentColor' : 'none'} />
                 </button>
-              </Link>
+              </div>
             );
           })}
         </div>
