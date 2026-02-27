@@ -187,17 +187,10 @@ export function ArticleDetailPage() {
     }
   }, [settings, isSummarizing, summary, plainText]);
 
-  const proseClasses = `prose prose-neutral max-w-none dark:prose-invert
-    prose-headings:text-foreground prose-headings:font-semibold
-    prose-p:text-foreground prose-p:leading-relaxed
-    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
-    prose-img:rounded-lg prose-img:my-4
-    prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
-    prose-code:text-foreground prose-code:bg-secondary prose-code:rounded prose-code:px-1
-    prose-pre:bg-secondary prose-pre:text-foreground`;
+
 
   return (
-    <div className="mx-auto max-w-3xl pb-16">
+    <div className="mx-auto max-w-3xl overflow-x-hidden pb-20">
       {/* Navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
@@ -269,7 +262,7 @@ export function ArticleDetailPage() {
       )}
 
       {/* Article Content (rendered as segments to support inline translations) */}
-      <div className={proseClasses}>
+      <div className="article-content">
         {segments.map((segment, index) => (
           <div key={index}>
             <div dangerouslySetInnerHTML={{ __html: segment.html }} />
