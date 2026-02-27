@@ -1,4 +1,4 @@
-# RSS Reader PWA
+# RSS Reader PWA 🦞
 
 <div align="center">
 
@@ -10,9 +10,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![PWA](https://img.shields.io/badge/PWA-Enabled-success)](https://web.dev/progressive-web-apps/)
-[![Netlify Status](https://api.netlify.com/api/v1/badges/13450015-8413-497a-bf76-c49743c33f54/deploy-status)](https://app.netlify.com/projects/rss-reader-pwa/deploys)
 
-[Live Demo](https://reader.chigao.site/) | [Features](#-features) | [Installation](#-installation) | [Usage](#-usage)
+[Live Demo](https://reader.chigao.site/) · [Features](#-features) · [Quick Start](#-quick-start) · [Docs](#-documentation)
 
 </div>
 
@@ -21,6 +20,26 @@
 ## 📖 Overview
 
 RSS Reader is a full-featured Progressive Web App built with modern web technologies. It provides a seamless experience for managing and reading RSS/Atom feeds, with complete offline support, automatic synchronization, and a beautiful, responsive interface.
+
+> 💡 **Why this app?** Stay updated with your favorite blogs, news sites, and content creators without algorithms or ads. You control what you read, when you read it.
+
+## 🚀 Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/chiga0/rss-reader.git
+cd rss-reader
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Open http://localhost:5173 to see the app!
+
+---
 
 ## ✨ Features
 
@@ -64,24 +83,16 @@ RSS Reader is a full-featured Progressive Web App built with modern web technolo
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+ 
-- npm 9+ or pnpm/yarn
 
-### Clone & Install
+- **Node.js** 18+ 
+- **npm** 9+ (or pnpm/yarn)
+
+### Verify Installation
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/rss-reader.git
-cd rss-reader
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
+node --version  # Should be v18 or higher
+npm --version   # Should be v9 or higher
 ```
-
-The app will be available at `http://localhost:5173`
 
 ---
 
@@ -260,12 +271,13 @@ npm run test:coverage
 
 ### Environment Variables
 
-Create a `.env` file in the root:
+Create a `.env` or `.env.local` file in the root:
 
 ```env
-# API Configuration
-VITE_API_BASE_URL=https://api.example.com
-VITE_CORS_PROXY=https://cors-proxy.example.com
+# AI Integration (Optional)
+AI_BASE_URL=https://api.openai.com/v1
+AI_API_KEY=your_api_key_here
+AI_MODEL=gpt-4o-mini
 
 # Feature Flags
 VITE_ENABLE_ANALYTICS=false
@@ -274,6 +286,8 @@ VITE_ENABLE_PUSH_NOTIFICATIONS=true
 # Development
 VITE_DEBUG=false
 ```
+
+> ⚠️ **Security Note**: Never commit `.env.local` to version control. Add it to `.gitignore`.
 
 ### Customization
 
@@ -343,30 +357,74 @@ const CACHE_CONFIG = {
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these steps:
+Contributions are welcome! 🎉
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### How to Contribute
+
+1. **Fork** the repository
+2. **Create a branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit changes** (`git commit -m 'Add amazing feature'`)
+4. **Push** (`git push origin feature/amazing-feature`)
+5. **Open a Pull Request**
 
 ### Development Guidelines
 
-- Write tests for new features
-- Follow the existing code style
-- Update documentation as needed
-- Ensure all tests pass before submitting
+- ✅ Write tests for new features
+- ✅ Follow the existing code style (ESLint + Prettier)
+- ✅ Update documentation as needed
+- ✅ Ensure all tests pass before submitting
+
+```bash
+# Run all checks before submitting
+npm run type-check
+npm run lint
+npm run test:run
+```
+
+### Need Help?
+
+- 💬 Open an issue for questions
+- 📖 Check existing issues for known problems
+- 📝 Read the [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) for project details
 
 ---
 
-## 🐛 Known Issues
+## 🐛 Troubleshooting
 
-- [ ] Favicon may not update immediately after changes (browser cache)
-- [ ] Some RSS feeds with non-standard formats may not parse correctly
+### Common Issues
+
+**Port 5173 already in use:**
+```bash
+# Kill the process or use a different port
+npm run dev -- --port 3000
+```
+
+**Dependencies not installing:**
+```bash
+# Clear cache and reinstall
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**PWA not working:**
+- Ensure you're using HTTPS (required for service workers)
+- Check browser console for errors
+- Try unregistering the service worker in DevTools
+
+**Build fails:**
+```bash
+# Clear build cache
+rm -rf dist node_modules/.vite
+npm run build
+```
+
+### Known Limitations
+
+- [ ] Favicon may not update immediately (browser cache)
+- [ ] Some non-standard RSS feeds may not parse correctly
 - [ ] iOS Safari: Background sync requires app to be opened periodically
 
-See [Issues](https://github.com/yourusername/rss-reader/issues) for full list.
+See [Issues](https://github.com/chiga0/rss-reader/issues) for full list.
 
 ---
 
@@ -406,10 +464,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📧 Email: support@example.com
-- 💬 Discord: [Join our community](#)
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/rss-reader/issues)
-- 📖 Docs: [Full Documentation](#)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/chiga0/rss-reader/issues)
+- 💡 **Feature Requests**: [GitHub Issues](https://github.com/chiga0/rss-reader/issues)
+- 📖 **Documentation**: See `docs/` folder and [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)
 
 ---
 
