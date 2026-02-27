@@ -66,15 +66,15 @@ export function FavoritesPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="mb-6 text-2xl font-bold text-foreground">
-        Favorites {favorites.length > 0 && <span className="text-muted-foreground">({favorites.length})</span>}
+        收藏 {favorites.length > 0 && <span className="text-muted-foreground">({favorites.length})</span>}
       </h1>
 
       {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <Heart className="mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="mb-2 text-lg font-semibold text-foreground">No favorites yet</h2>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">暂无收藏</h2>
           <p className="text-sm text-muted-foreground">
-            Articles you favorite will appear here for easy access
+            收藏的文章将会显示在这里
           </p>
         </div>
       ) : (
@@ -113,7 +113,7 @@ export function FavoritesPage() {
               <button
                 onClick={(e) => handleUnfavorite(article.id, e)}
                 className="shrink-0 rounded-md p-1.5 text-red-500 transition-colors hover:bg-destructive/10"
-                title="Remove from favorites"
+                title="取消收藏"
               >
                 <HeartOff className="h-4 w-4" />
               </button>

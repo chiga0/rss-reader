@@ -52,7 +52,7 @@ export const routes: Route[] = [
     path: '/favorites',
     element: <FavoritesPage />,
     handle: {
-      title: 'Favorites',
+      title: '收藏',
       icon: 'star',
     },
   },

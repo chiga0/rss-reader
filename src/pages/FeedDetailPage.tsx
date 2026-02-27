@@ -189,7 +189,7 @@ export function FeedDetailPage() {
                       ? 'text-red-500'
                       : 'text-muted-foreground hover:text-red-500'
                   }`}
-                  title={article.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  title={article.isFavorite ? '取消收藏' : '收藏'}
                 >
                   <Heart className="h-4 w-4" fill={article.isFavorite ? 'currentColor' : 'none'} />
                 </button>
