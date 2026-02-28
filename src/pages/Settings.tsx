@@ -21,7 +21,6 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 export default function Settings() {
   const { t } = useTranslation('settings');
-  const { t: tCommon } = useTranslation('common');
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
