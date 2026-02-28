@@ -120,33 +120,33 @@ describe('FeedsPage', () => {
   });
 
   describe('Bottom Filter Banner', () => {
-    it('should render three filter tabs: Starred, Unread, All', () => {
+    it('should render three filter tabs: 收藏, 未读, 全部', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      expect(screen.getByRole('button', { name: 'Starred' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Unread' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '收藏' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '未读' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '全部' })).toBeInTheDocument();
     });
 
-    it('should default to Unread filter', () => {
+    it('should default to 未读 filter', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      const unreadBtn = screen.getByRole('button', { name: 'Unread' });
+      const unreadBtn = screen.getByRole('button', { name: '未读' });
       expect(unreadBtn).toHaveAttribute('aria-pressed', 'true');
     });
 
     it('should switch filter when tab is clicked', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      const allBtn = screen.getByRole('button', { name: 'All' });
+      const allBtn = screen.getByRole('button', { name: '全部' });
       fireEvent.click(allBtn);
       expect(useStore.getState().feedsFilter).toBe('all');
     });
 
-    it('should switch to starred filter when Starred tab is clicked', () => {
+    it('should switch to starred filter when 收藏 tab is clicked', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      const starredBtn = screen.getByRole('button', { name: 'Starred' });
+      const starredBtn = screen.getByRole('button', { name: '收藏' });
       fireEvent.click(starredBtn);
       expect(useStore.getState().feedsFilter).toBe('starred');
     });

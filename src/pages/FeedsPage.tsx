@@ -150,9 +150,9 @@ export function FeedsPage() {
   }, [filteredFeeds, categories]);
 
   const filterTabs = [
-    { key: 'starred' as const, label: 'Starred', icon: Star },
-    { key: 'unread' as const, label: 'Unread', icon: BookOpen },
-    { key: 'all' as const, label: 'All', icon: List },
+    { key: 'starred' as const, label: '收藏', icon: Star },
+    { key: 'unread' as const, label: '未读', icon: BookOpen },
+    { key: 'all' as const, label: '全部', icon: List },
   ];
 
   return (
@@ -213,7 +213,7 @@ export function FeedsPage() {
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-12 text-center">
               <Rss className="mb-3 h-10 w-10 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                {feedsFilter === 'starred' ? 'No feeds with starred articles' : 'No feeds with unread articles'}
+                {feedsFilter === 'starred' ? '没有包含收藏文章的订阅源' : '没有包含未读文章的订阅源'}
               </p>
             </div>
           )}

@@ -22,7 +22,7 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     id: 'favorites',
-    label: 'Favorites',
+    label: '收藏',
     icon: Star,
     path: '/favorites',
     group: 'main',
