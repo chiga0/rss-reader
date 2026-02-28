@@ -1,13 +1,11 @@
 {
-  "category": {
-    "title": "分类",
-    "createCategory": "创建分类",
-    "createCategoryTitle": "新建分类",
-    "categoryName": "分类名称",
-    "categoryNamePlaceholder": "分类名称",
-    "enterCategoryName": "请输入分类名称",
-    "createdSuccess": "分类创建成功！",
-    "deleteSuccess": "分类删除成功！",
-    "updateSuccess": "分类更新成功！"
-  }
+  "title": "分类",
+  "createCategory": "创建分类",
+  "createCategoryTitle": "新建分类",
+  "categoryName": "分类名称",
+  "categoryNamePlaceholder": "分类名称",
+  "enterCategoryName": "请输入分类名称",
+  "createdSuccess": "分类创建成功！",
+  "deleteSuccess": "分类删除成功！",
+  "updateSuccess": "分类更新成功！"
 }
