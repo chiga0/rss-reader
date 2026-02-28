@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '@hooks/useStore';
 
 interface CreateCategoryDialogProps {
@@ -12,6 +13,8 @@ interface CreateCategoryDialogProps {
 }
 
 export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogProps) {
+  const { t } = useTranslation('category');
+  const { t: tCommon } = useTranslation('common');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const { createCategory } = useStore();
@@ -23,7 +26,7 @@ export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogPr
     setError('');
 
     if (!name.trim()) {
-      setError('请输入分类名称');
+      setError(t('enterCategoryName'));
       return;
     }
 
@@ -41,17 +44,17 @@ export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogPr
       <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-          <h2 className="mb-4 text-xl font-semibold">新建分类</h2>
+          <h2 className="mb-4 text-xl font-semibold">{t('createCategoryTitle')}</h2>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="category-name" className="sr-only">分类名称</label>
+              <label htmlFor="category-name" className="sr-only">{t('categoryName')}</label>
               <input
                 id="category-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="分类名称"
+                placeholder={t('categoryNamePlaceholder')}
                 className="w-full rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:border-gray-600"
                 autoFocus
               />
@@ -69,13 +72,13 @@ export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogPr
                 onClick={onClose}
                 className="flex-1 rounded-lg border px-4 py-2 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
               >
-                取消
+                {tCommon('cancel')}
               </button>
               <button
                 type="submit"
                 className="flex-1 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary/90"
               >
-                创建
+                {t('createCategory')}
               </button>
             </div>
           </form>

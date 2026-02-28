@@ -1,0 +1,32 @@
+{
+  "feed": {
+    "title": "订阅源",
+    "allFeeds": "全部订阅",
+    "addFeed": "添加订阅",
+    "addFeedTitle": "添加 RSS 订阅源",
+    "feedUrl": "订阅源地址",
+    "feedUrlPlaceholder": "https://example.com/feed.xml",
+    "category": "分类",
+    "categoryOptional": "分类（可选）",
+    "noCategory": "无分类",
+    "unsubscribe": "取消订阅",
+    "refreshAll": "刷新所有订阅源",
+    "refreshFailed": "刷新失败，请重试",
+    "noFeeds": "暂无订阅源",
+    "noStarredFeeds": "没有包含收藏文章的订阅源",
+    "noUnreadFeeds": "没有包含未读文章的订阅源",
+    "adding": "添加中...",
+    "addedSuccess": "订阅源添加成功！",
+    "errors": {
+      "enterUrl": "请输入订阅源地址",
+      "invalidUrl": "请输入有效的 URL",
+      "offlineAdd": "离线状态下无法添加订阅源，请检查网络连接",
+      "addFailed": "添加订阅源失败"
+    },
+    "starred": "收藏",
+    "unread": "未读",
+    "all": "全部",
+    "loadingFeeds": "加载订阅源中...",
+    "refreshFeed": "刷新订阅源"
+  }
+}

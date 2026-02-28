@@ -2,6 +2,7 @@
  * ArticleActionBar - Fixed bottom banner with Favorite, Translate, and AI Summary buttons.
  */
 
+import { useTranslation } from 'react-i18next';
 import { Heart, Languages, Sparkles, Loader2 } from 'lucide-react';
 
 interface ArticleActionBarProps {
@@ -21,6 +22,8 @@ export function ArticleActionBar({
   onTranslate,
   onSummarize,
 }: ArticleActionBarProps) {
+  const { t } = useTranslation('article');
+
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-sm"
@@ -37,7 +40,7 @@ export function ArticleActionBar({
           }`}
         >
           <Heart className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} />
-          <span>{isFavorite ? '已收藏' : '收藏'}</span>
+          <span>{isFavorite ? t('favorited') : t('favorite')}</span>
         </button>
 
         {/* Translate */}

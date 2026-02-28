@@ -1,0 +1,17 @@
+{
+  "title": "Articles",
+  "loadingArticles": "Loading articles...",
+  "loadingArticle": "Loading article...",
+  "notFound": "Article not found",
+  "articleCount_one": "{{count}} article",
+  "articleCount_other": "{{count}} articles",
+  "backToList": "Back to article list",
+  "backToFeeds": "Back to feed list",
+  "favorite": "Favorite",
+  "unfavorite": "Remove from favorites",
+  "favorited": "Favorited",
+  "notFavorited": "Not favorited",
+  "favoriteArticle": "Favorite article",
+  "noFavorites": "No favorites yet",
+  "noFavoritesHint": "Favorited articles will appear here"
+}

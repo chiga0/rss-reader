@@ -1,0 +1,25 @@
+{
+  "loading": "Loading...",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "delete": "Delete",
+  "edit": "Edit",
+  "add": "Add",
+  "refresh": "Refresh",
+  "refreshing": "Refreshing...",
+  "back": "Back",
+  "offline": {
+    "title": "You're currently offline",
+    "message": "Connect to the internet to use this feature."
+  },
+  "errors": {
+    "networkError": "Network error, please try again",
+    "unknownError": "An error occurred"
+  },
+  "language": {
+    "title": "Language",
+    "en": "English",
+    "zh": "中文"
+  }
+}

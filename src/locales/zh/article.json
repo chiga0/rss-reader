@@ -1,0 +1,18 @@
+{
+  "article": {
+    "title": "文章",
+    "loadingArticles": "加载文章中...",
+    "loadingArticle": "加载文章中...",
+    "notFound": "文章未找到",
+    "articleCount": "{{count}} 篇文章",
+    "backToList": "返回文章列表",
+    "backToFeeds": "返回订阅源列表",
+    "favorite": "收藏",
+    "unfavorite": "取消收藏",
+    "favorited": "已收藏",
+    "notFavorited": "未收藏",
+    "favoriteArticle": "收藏文章",
+    "noFavorites": "暂无收藏",
+    "noFavoritesHint": "收藏的文章将会显示在这里"
+  }
+}

@@ -3,12 +3,14 @@
  * Scrollable list of articles for the selected feed
  */
 
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../hooks/useStore';
 import { ArticleItem } from './ArticleItem';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 
 export function ArticleList() {
+  const { t } = useTranslation('article');
   const { articles, selectedFeedId, feeds, isLoading, error, selectArticle, selectFeed, setError } = useStore();
 
   // Get selected feed
@@ -41,7 +43,7 @@ export function ArticleList() {
             <button
               onClick={handleBack}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors tablet:hidden"
-              title="返回订阅源列表"
+              title={t('backToFeeds')}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -59,7 +61,7 @@ export function ArticleList() {
                 {selectedFeed.title}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                {feedArticles.length} {feedArticles.length === 1 ? 'article' : 'articles'}
+                {t('articleCount', { count: feedArticles.length })}
               </p>
             </div>
           </div>
@@ -74,7 +76,7 @@ export function ArticleList() {
       )}
 
       {/* Loading State */}
-      {isLoading && <LoadingSpinner message="Loading articles..." />}
+      {isLoading && <LoadingSpinner message={t('loadingArticles')} />}
 
       {/* Empty State - No Feed Selected */}
       {!isLoading && !selectedFeedId && (

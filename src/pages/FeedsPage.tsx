@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Plus, RefreshCw, Rss, Trash2, Star, BookOpen, List } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
@@ -15,6 +16,8 @@ import { AddFeedDialog } from '@components/AddFeedDialog/AddFeedDialog';
 import type { Article } from '@models/Feed';
 
 export function FeedsPage() {
+  const { t } = useTranslation('feed');
+  const { t: tCommon } = useTranslation('common');
   const {
     feeds,
     categories,
@@ -150,25 +153,25 @@ export function FeedsPage() {
   }, [filteredFeeds, categories]);
 
   const filterTabs = [
-    { key: 'starred' as const, label: '收藏', icon: Star },
-    { key: 'unread' as const, label: '未读', icon: BookOpen },
-    { key: 'all' as const, label: '全部', icon: List },
+    { key: 'starred' as const, label: t('starred'), icon: Star },
+    { key: 'unread' as const, label: t('unread'), icon: BookOpen },
+    { key: 'all' as const, label: t('all'), icon: List },
   ];
 
   return (
     <div className="mx-auto max-w-4xl pb-20">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Feeds</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('title')}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-card-foreground transition-colors hover:bg-accent disabled:opacity-50"
-            title="Refresh all feeds"
+            title={t('refreshAll')}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+            <span className="hidden sm:inline">{isRefreshing ? tCommon('refreshing') : tCommon('refresh')}</span>
           </button>
         </div>
       </div>
@@ -192,7 +195,7 @@ export function FeedsPage() {
       {!isLoading && feeds.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <Rss className="mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="mb-2 text-lg font-semibold text-foreground">No feeds yet</h2>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">{t('noFeeds')}</h2>
           <p className="mb-6 text-sm text-muted-foreground">
             Get started by adding your first RSS feed subscription
           </p>
@@ -201,7 +204,7 @@ export function FeedsPage() {
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
-            Add Your First Feed
+            {t('addFeed')}
           </button>
         </div>
       )}
@@ -213,7 +216,7 @@ export function FeedsPage() {
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-12 text-center">
               <Rss className="mb-3 h-10 w-10 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                {feedsFilter === 'starred' ? '没有包含收藏文章的订阅源' : '没有包含未读文章的订阅源'}
+                {feedsFilter === 'starred' ? t('noStarredFeeds') : t('noUnreadFeeds')}
               </p>
             </div>
           )}
@@ -269,8 +272,8 @@ export function FeedsPage() {
                       <button
                         onClick={(e) => handleDelete(feed.id, e)}
                         className="shrink-0 rounded-md p-2 text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive md:opacity-0 md:group-hover:opacity-100"
-                        title="Unsubscribe"
-                        aria-label={`Unsubscribe from ${feed.title}`}
+                        title={t('unsubscribe')}
+                        aria-label={`${t('unsubscribe')} ${feed.title}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -287,8 +290,8 @@ export function FeedsPage() {
       <button
         onClick={openAddFeedDialog}
         className="fixed bottom-20 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
-        title="Add Feed"
-        aria-label="Add Feed"
+        title={t('addFeed')}
+        aria-label={t('addFeed')}
       >
         <Plus className="h-6 w-6" />
       </button>

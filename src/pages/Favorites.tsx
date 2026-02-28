@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Heart, HeartOff } from 'lucide-react';
 import { storage } from '@lib/storage';
@@ -11,6 +12,7 @@ import { formatRelativeTime } from '@utils/dateFormat';
 import type { Article, Feed } from '@models/Feed';
 
 export function FavoritesPage() {
+  const { t } = useTranslation('article');
   const [favorites, setFavorites] = useState<(Article & { feedTitle?: string })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,15 +68,15 @@ export function FavoritesPage() {
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="mb-6 text-2xl font-bold text-foreground">
-        收藏 {favorites.length > 0 && <span className="text-muted-foreground">({favorites.length})</span>}
+        {t('favorite')} {favorites.length > 0 && <span className="text-muted-foreground">({favorites.length})</span>}
       </h1>
 
       {favorites.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <Heart className="mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="mb-2 text-lg font-semibold text-foreground">暂无收藏</h2>
+          <h2 className="mb-2 text-lg font-semibold text-foreground">{t('noFavorites')}</h2>
           <p className="text-sm text-muted-foreground">
-            收藏的文章将会显示在这里
+            {t('noFavoritesHint')}
           </p>
         </div>
       ) : (
@@ -113,7 +115,7 @@ export function FavoritesPage() {
               <button
                 onClick={(e) => handleUnfavorite(article.id, e)}
                 className="shrink-0 rounded-md p-1.5 text-red-500 transition-colors hover:bg-destructive/10"
-                title="取消收藏"
+                title={t('unfavorite')}
               >
                 <HeartOff className="h-4 w-4" />
               </button>

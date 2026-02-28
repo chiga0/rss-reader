@@ -1,0 +1,28 @@
+{
+  "title": "Feeds",
+  "allFeeds": "All Feeds",
+  "addFeed": "Add Feed",
+  "addFeedTitle": "Add RSS Feed",
+  "feedUrl": "Feed URL",
+  "feedUrlPlaceholder": "https://example.com/feed.xml",
+  "category": "Category",
+  "categoryOptional": "Category (Optional)",
+  "noCategory": "No category",
+  "unsubscribe": "Unsubscribe",
+  "refreshAll": "Refresh all feeds",
+  "refreshFailed": "Refresh failed, please try again",
+  "noFeeds": "No feeds yet",
+  "noStarredFeeds": "No feeds with starred articles",
+  "noUnreadFeeds": "No feeds with unread articles",
+  "adding": "Adding...",
+  "addedSuccess": "Feed added successfully!",
+  "errors": {
+    "enterUrl": "Please enter a feed URL",
+    "invalidUrl": "Please enter a valid URL",
+    "offlineAdd": "Cannot add feeds while offline. Please check your connection.",
+    "addFailed": "Failed to add feed"
+  },
+  "starred": "Starred",
+  "unread": "Unread",
+  "all": "All"
+}
