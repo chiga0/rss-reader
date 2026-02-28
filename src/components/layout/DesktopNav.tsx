@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 export function DesktopNav() {
   const location = useLocation();
+  const { t } = useTranslation('common');
 
   const isActivePath = (path: string) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -30,7 +32,7 @@ export function DesktopNav() {
                 aria-current={isActive ? 'page' : undefined}
               >
                 <Icon className="h-4 w-4 mr-2" aria-hidden />
-                <span>{item.label}</span>
+                <span>{t(`nav.${item.id}`)}</span>
               </Link>
             </NavigationMenuItem>
           );

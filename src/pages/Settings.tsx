@@ -21,6 +21,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 
 export default function Settings() {
   const { t } = useTranslation('settings');
+  const { t: tCommon } = useTranslation('common');
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -117,11 +118,11 @@ export default function Settings() {
                 className="rounded border-border text-primary focus:ring-primary"
               />
               <span className="ml-2 text-sm text-card-foreground">
-                Enable background sync
+                {t('backgroundSync.label')}
               </span>
             </label>
             <p className="ml-6 mt-1 text-xs text-muted-foreground">
-              Automatically refresh feeds in the background
+              {t('backgroundSync.description')}
             </p>
           </div>
         </div>
@@ -137,7 +138,7 @@ export default function Settings() {
         {/* Notification Settings Section */}
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">
-            Notifications
+            {t('notifications.title')}
           </h2>
           
           <label className="flex items-center" htmlFor="enable-notifications">
@@ -149,11 +150,11 @@ export default function Settings() {
               className="rounded border-border text-primary focus:ring-primary"
             />
             <span className="ml-2 text-sm text-card-foreground">
-              Enable new article notifications
+              {t('notifications.label')}
             </span>
           </label>
           <p className="ml-6 mt-1 text-xs text-muted-foreground">
-            Get notified when new articles are available
+            {t('notifications.description')}
           </p>
         </div>
 
@@ -169,7 +170,7 @@ export default function Settings() {
                 {t('opml.export')}
               </h3>
               <p className="mb-3 text-xs text-muted-foreground">
-                Export your subscriptions as an OPML file for backup or migration
+                {t('opml.exportDescription')}
               </p>
               <OPMLExportButton />
             </div>
@@ -179,7 +180,7 @@ export default function Settings() {
                 {t('opml.import')}
               </h3>
               <p className="mb-3 text-xs text-muted-foreground">
-                Import subscriptions from an OPML file
+                {t('opml.importDescription')}
               </p>
               <OPMLImportDialog />
             </div>
@@ -190,13 +191,13 @@ export default function Settings() {
       {/* Save Indicator */}
       {saved && (
         <div className="mt-4 rounded-md border border-border bg-secondary p-3 text-center text-sm text-secondary-foreground">
-          ✓ Settings saved
+          {t('saved')}
         </div>
       )}
 
       {isSaving && (
         <div className="mt-4 rounded-md border border-border bg-secondary p-3 text-center text-sm text-muted-foreground">
-          Saving...
+          {t('saving')}
         </div>
       )}
     </div>

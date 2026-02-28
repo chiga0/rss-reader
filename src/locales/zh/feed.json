@@ -12,6 +12,7 @@
   "refreshAll": "刷新所有订阅源",
   "refreshFailed": "刷新失败，请重试",
   "noFeeds": "暂无订阅源",
+  "noFeedsHint": "添加您的第一个 RSS 订阅源开始使用",
   "noStarredFeeds": "没有包含收藏文章的订阅源",
   "noUnreadFeeds": "没有包含未读文章的订阅源",
   "adding": "添加中...",
@@ -26,5 +27,7 @@
   "unread": "未读",
   "all": "全部",
   "loadingFeeds": "加载订阅源中...",
-  "refreshFeed": "刷新订阅源"
+  "refreshFeed": "刷新订阅源",
+  "articles": "篇文章",
+  "updated": "更新于"
 }

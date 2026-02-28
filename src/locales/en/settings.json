@@ -4,7 +4,12 @@
     "title": "Theme",
     "light": "Light",
     "dark": "Dark",
-    "system": "System"
+    "system": "System",
+    "systemDefault": "🌓 System Default",
+    "lightMode": "☀️ Light",
+    "darkMode": "🌙 Dark",
+    "systemDescription": "Automatically matches your system theme preference",
+    "modeDescription": "Using {{mode}} theme"
   },
   "refreshInterval": {
     "title": "Auto Refresh Interval",
@@ -16,12 +21,30 @@
     "description_manual": "Feeds will not auto-refresh, manual refresh required",
     "description_interval": "Feeds will auto-refresh every {{interval}}"
   },
+  "backgroundSync": {
+    "label": "Enable background sync",
+    "description": "Automatically refresh feeds in the background"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "label": "Enable new article notifications",
+    "description": "Get notified when new articles are available"
+  },
   "opml": {
     "import": "Import OPML",
     "export": "Export OPML",
     "importSuccess": "OPML imported successfully!",
-    "exportSuccess": "OPML exported successfully!"
+    "exportSuccess": "OPML exported successfully!",
+    "exportDescription": "Export your subscriptions as an OPML file for backup or migration",
+    "importDescription": "Import subscriptions from an OPML file",
+    "exporting": "Exporting...",
+    "importing": "Importing feeds...",
+    "selectFile": "Select OPML file",
+    "importCompleted": "Import completed: {{imported}} successful, {{failed}} failed",
+    "moreErrors": "...and {{count}} more errors"
   },
+  "saved": "✓ Settings saved",
+  "saving": "Saving...",
   "version": {
     "newVersion": "A new version is available, please refresh the page to get the latest content"
   }

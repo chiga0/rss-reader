@@ -1,7 +1,9 @@
 import { useTheme } from '@/lib/theme/ThemeProvider';
+import { useTranslation } from 'react-i18next';
 
 export function ThemeSelector() {
   const { mode: theme, setTheme } = useTheme();
+  const { t } = useTranslation('settings');
 
   return (
     <div className="space-y-2">
@@ -9,7 +11,7 @@ export function ThemeSelector() {
         htmlFor="theme-selector"
         className="block text-sm font-medium text-card-foreground"
       >
-        Theme
+        {t('theme.title')}
       </label>
       <select
         id="theme-selector"
@@ -18,14 +20,14 @@ export function ThemeSelector() {
         onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
         className="block w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground shadow-sm focus:border-primary focus:ring-2 focus:ring-primary"
       >
-        <option value="system">🌓 System Default</option>
-        <option value="light">☀️ Light</option>
-        <option value="dark">🌙 Dark</option>
+        <option value="system">{t('theme.systemDefault')}</option>
+        <option value="light">{t('theme.lightMode')}</option>
+        <option value="dark">{t('theme.darkMode')}</option>
       </select>
       <p className="text-xs text-muted-foreground">
         {theme === 'system'
-          ? 'Automatically matches your system theme preference'
-          : `Using ${theme} theme`}
+          ? t('theme.systemDescription')
+          : t('theme.modeDescription', { mode: t(`theme.${theme}`) })}
       </p>
     </div>
   );

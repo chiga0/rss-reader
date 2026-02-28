@@ -197,7 +197,7 @@ export function FeedsPage() {
           <Rss className="mb-4 h-12 w-12 text-muted-foreground" />
           <h2 className="mb-2 text-lg font-semibold text-foreground">{t('noFeeds')}</h2>
           <p className="mb-6 text-sm text-muted-foreground">
-            Get started by adding your first RSS feed subscription
+            {t('noFeedsHint')}
           </p>
           <button
             onClick={openAddFeedDialog}
@@ -261,9 +261,9 @@ export function FeedsPage() {
                           </p>
                         )}
                         <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{counts.total} articles</span>
+                          <span>{counts.total} {t('articles')}</span>
                           {feed.lastFetchedAt && (
-                            <span>Updated {new Date(feed.lastFetchedAt).toLocaleDateString()}</span>
+                            <span>{t('updated')} {new Date(feed.lastFetchedAt).toLocaleDateString()}</span>
                           )}
                         </div>
                       </div>

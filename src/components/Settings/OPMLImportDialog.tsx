@@ -4,6 +4,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { importFromOPML } from '@services/opmlService';
 import { logger } from '@lib/logger';
 import { useStore } from '@hooks/useStore';
@@ -16,6 +17,7 @@ export function OPMLImportDialog() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { loadFeeds } = useStore();
   const { addToast } = useToast();
+  const { t } = useTranslation('settings');
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -61,7 +63,7 @@ export function OPMLImportDialog() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3">
-        <label htmlFor="opml-file-input" className="sr-only">选择OPML文件</label>
+        <label htmlFor="opml-file-input" className="sr-only">{t('opml.selectFile')}</label>
         <input
           id="opml-file-input"
           ref={fileInputRef}
@@ -76,7 +78,7 @@ export function OPMLImportDialog() {
       {isImporting && progress.total > 0 && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Importing feeds...</span>
+            <span>{t('opml.importing')}</span>
             <span>{progress.current} / {progress.total}</span>
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
@@ -95,7 +97,7 @@ export function OPMLImportDialog() {
             : 'bg-green-500/10 text-green-700 dark:text-green-300'
         }`}>
           <p className="font-medium">
-            Import completed: {result.imported} successful, {result.failed} failed
+            {t('opml.importCompleted', { imported: result.imported, failed: result.failed })}
           </p>
           {result.errors.length > 0 && (
             <ul className="mt-2 text-sm list-disc list-inside">
@@ -103,7 +105,7 @@ export function OPMLImportDialog() {
                 <li key={i}>{error}</li>
               ))}
               {result.errors.length > 5 && (
-                <li>...and {result.errors.length - 5} more errors</li>
+                <li>{t('opml.moreErrors', { count: result.errors.length - 5 })}</li>
               )}
             </ul>
           )}
