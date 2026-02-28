@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../hooks/useStore';
 import { FeedCard } from './FeedCard';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
@@ -13,6 +14,8 @@ import { CategorySidebar } from '../CategoryList/CategorySidebar';
 import { CreateCategoryDialog } from '../CategoryList/CreateCategoryDialog';
 
 export function FeedList() {
+  const { t } = useTranslation('feed');
+  const { t: tCommon } = useTranslation('common');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = useState(false);
@@ -48,7 +51,7 @@ export function FeedList() {
       await refreshAllFeeds();
       await loadSyncState(); // Reload sync state after refresh
     } catch (error) {
-      setError('刷新失败,请重试');
+      setError(t('refreshFailed'));
     } finally {
       setIsRefreshing(false);
     }
@@ -78,14 +81,14 @@ export function FeedList() {
       {/* Header */}
       <div className="mb-8 flex items-center justify-between gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-          My Feeds
+          {t('title')}
         </h1>
         <div className="flex gap-2">
           <button
             onClick={handleRefresh}
             disabled={isSyncing}
             className="flex items-center gap-2 rounded-lg bg-gray-200 dark:bg-gray-700 px-3 py-2 font-medium text-gray-900 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            title="刷新所有订阅源"
+            title={t('refreshAll')}
           >
             <svg 
               className={`h-5 w-5 ${isSyncing ? 'animate-spin' : ''}`} 
@@ -96,7 +99,7 @@ export function FeedList() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span className="hidden sm:inline">
-              {isSyncing ? '刷新中...' : '刷新'}
+              {isSyncing ? tCommon('refreshing') : tCommon('refresh')}
             </span>
           </button>
           <button
@@ -106,7 +109,7 @@ export function FeedList() {
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            <span className="hidden sm:inline">Add Feed</span>
+            <span className="hidden sm:inline">{t('addFeed')}</span>
           </button>
         </div>
       </div>
@@ -119,7 +122,7 @@ export function FeedList() {
       )}
 
       {/* Loading State */}
-      {isLoading && <LoadingSpinner message="Loading feeds..." />}
+      {isLoading && <LoadingSpinner message={t('loadingFeeds')} />}
 
       {/* Empty State */}
       {!isLoading && feeds.length === 0 && (
@@ -138,7 +141,7 @@ export function FeedList() {
             />
           </svg>
           <h2 className="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            No feeds yet
+            {t('noFeeds')}
           </h2>
           <p className="mb-6 text-gray-600 dark:text-gray-400">
             Get started by adding your first RSS feed
@@ -147,7 +150,7 @@ export function FeedList() {
             onClick={openAddFeedDialog}
             className="rounded-lg bg-primary px-6 py-3 font-medium text-white hover:bg-primary/90 transition-colors"
           >
-            Add Your First Feed
+            {t('addFeed')}
           </button>
         </div>
       )}

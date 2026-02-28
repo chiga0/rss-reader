@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../hooks/useStore';
 import { useOfflineDetection } from '../../hooks/useOfflineDetection';
 import { useToast } from '../../hooks/useToast';
@@ -14,6 +15,7 @@ interface AddFeedDialogProps {
 }
 
 export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
+  const { t } = useTranslation('feed');
   const [url, setUrl] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -34,20 +36,20 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
 
     // Check if online
     if (!isOnline) {
-      setError('Cannot add feeds while offline. Please check your connection.');
+      setError(t('errors.offlineAdd'));
       return;
     }
 
     // Validate URL
     if (!url.trim()) {
-      setError('Please enter a feed URL');
+      setError(t('errors.enterUrl'));
       return;
     }
 
     try {
       new URL(url);
     } catch {
-      setError('Please enter a valid URL');
+      setError(t('errors.invalidUrl'));
       return;
     }
 
@@ -56,17 +58,17 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
     try {
       const result = await subscribeFeed(url.trim(), categoryId || undefined);
       if (!result.success) {
-        setError(result.error || 'Failed to add feed');
+        setError(result.error || t('errors.addFailed'));
         return;
       }
       // Success - close dialog, reset form, and notify user
       setUrl('');
       setCategoryId('');
       setError('');
-      addToast('Feed added successfully!', 'success');
+      addToast(t('addedSuccess'), 'success');
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add feed');
+      setError(err instanceof Error ? err.message : t('errors.addFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -99,21 +101,21 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
           aria-labelledby="dialog-title"
         >
           <h2 id="dialog-title" className="mb-4 text-xl font-semibold text-card-foreground">
-            Add RSS Feed
+            {t('addFeedTitle')}
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* URL Input */}
             <div>
               <label htmlFor="feed-url" className="mb-1 block text-sm font-medium text-card-foreground">
-                Feed URL
+                {t('feedUrl')}
               </label>
               <input
                 id="feed-url"
                 type="text"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://example.com/feed.xml"
+                placeholder={t('feedUrlPlaceholder')}
                 className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 disabled={isSubmitting}
                 autoFocus
@@ -123,7 +125,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
             {/* Category Dropdown */}
             <div>
               <label htmlFor="category" className="mb-1 block text-sm font-medium text-card-foreground">
-                Category (Optional)
+                {t('categoryOptional')}
               </label>
               <select
                 id="category"
@@ -132,7 +134,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
                 className="w-full rounded-lg border border-border bg-background px-4 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 disabled={isSubmitting}
               >
-                <option value="">No category</option>
+                <option value="">{t('noCategory')}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -151,7 +153,7 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
             {/* Offline Warning */}
             {!isOnline && (
               <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-300">
-                ⚠️ You're currently offline. Connect to the internet to add new feeds.
+                ⚠️ {t('errors.offlineAdd')}
               </div>
             )}
 
@@ -163,15 +165,15 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
                 disabled={isSubmitting}
                 className="flex-1 rounded-lg border border-border bg-secondary px-4 py-2 font-medium text-secondary-foreground hover:bg-accent disabled:opacity-50"
               >
-                Cancel
+                {t('common:cancel')}
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !isOnline}
                 className="flex-1 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                title={!isOnline ? 'Cannot add feeds while offline' : ''}
+                title={!isOnline ? t('errors.offlineAdd') : ''}
               >
-                {isSubmitting ? 'Adding...' : 'Add Feed'}
+                {isSubmitting ? t('adding') : t('addFeed')}
               </button>
             </div>
           </form>

@@ -4,12 +4,14 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useStore } from '../../hooks/useStore';
 import { LoadingSpinner } from '../Common/LoadingSpinner';
 import { ErrorMessage } from '../Common/ErrorMessage';
 import { translateText, summarizeText } from '@services/aiService';
 
 export function ArticleView() {
+  const { t } = useTranslation('article');
   const { articles, selectedArticleId, isLoading, error, setError, toggleArticleFavorite, selectArticle } = useStore();
 
   const [aiSummary, setAiSummary] = useState<string | null>(null);
@@ -68,7 +70,7 @@ export function ArticleView() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Loading article..." />;
+    return <LoadingSpinner message={t('loadingArticle')} />;
   }
 
   if (!selectedArticleId) {
@@ -101,7 +103,7 @@ export function ArticleView() {
     return (
       <div className="p-8">
         <ErrorMessage
-          message="Article not found"
+          message={t('notFound')}
           onDismiss={() => setError(null)}
         />
       </div>
@@ -125,7 +127,7 @@ export function ArticleView() {
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
-        <span>返回文章列表</span>
+        <span>{t('backToList')}</span>
       </button>
 
       {/* Article Header */}
@@ -137,7 +139,7 @@ export function ArticleView() {
           <button
             onClick={() => toggleArticleFavorite(article.id)}
             className="shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title={article.isFavorite ? '取消收藏' : '收藏文章'}
+            title={article.isFavorite ? t('unfavorite') : t('favoriteArticle')}
           >
             <svg 
               className={`h-6 w-6 ${article.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
@@ -212,7 +214,7 @@ export function ArticleView() {
               <>
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8H4z" />
                 </svg>
                 Summarizing...
               </>
@@ -235,7 +237,7 @@ export function ArticleView() {
               <>
                 <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V8H4z" />
                 </svg>
                 Translating...
               </>

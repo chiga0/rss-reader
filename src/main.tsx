@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/globals.css';
+import './locales'; // Initialize i18n
+import i18n from './locales';
 import { logger } from '@lib/logger';
 import { registerSW } from 'virtual:pwa-register';
 
@@ -15,8 +17,8 @@ const updateSW = registerSW({
   onNeedRefresh() {
     logger.info('New content available; please refresh');
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('更新可用', {
-        body: '有新版本可用，请刷新页面获取最新内容',
+      new Notification(i18n.t('settings:version.newVersion'), {
+        body: i18n.t('settings:version.newVersion'),
         icon: '/icons/icon-192x192.png',
         badge: '/icons/icon-192x192.png',
       });

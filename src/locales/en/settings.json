@@ -1,0 +1,28 @@
+{
+  "title": "Settings",
+  "theme": {
+    "title": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "refreshInterval": {
+    "title": "Auto Refresh Interval",
+    "manual": "Manual refresh",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "description_manual": "Feeds will not auto-refresh, manual refresh required",
+    "description_interval": "Feeds will auto-refresh every {{interval}}"
+  },
+  "opml": {
+    "import": "Import OPML",
+    "export": "Export OPML",
+    "importSuccess": "OPML imported successfully!",
+    "exportSuccess": "OPML exported successfully!"
+  },
+  "version": {
+    "newVersion": "A new version is available, please refresh the page to get the latest content"
+  }
+}

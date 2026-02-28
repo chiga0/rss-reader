@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshIntervalSelector } from '@components/Settings/RefreshIntervalSelector';
 import { ThemeSelector } from '../components/Settings/ThemeSelector';
+import { LanguageSelector } from '../components/Settings/LanguageSelector';
 import { OPMLExportButton } from '@components/Settings/OPMLExportButton';
 import { OPMLImportDialog } from '@components/Settings/OPMLImportDialog';
 import { useStore } from '@hooks/useStore';
@@ -18,6 +20,7 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 export default function Settings() {
+  const { t } = useTranslation('settings');
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -82,13 +85,21 @@ export default function Settings() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="mb-8 text-2xl font-bold text-foreground">Settings</h1>
+      <h1 className="mb-8 text-2xl font-bold text-foreground">{t('title')}</h1>
 
       <div className="space-y-6">
+        {/* Language Settings Section */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold text-card-foreground">
+            {t('common:language.title')}
+          </h2>
+          <LanguageSelector />
+        </div>
+
         {/* Refresh Settings Section */}
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">
-            Refresh Settings
+            {t('refreshInterval.title')}
           </h2>
           
           <RefreshIntervalSelector 
@@ -118,7 +129,7 @@ export default function Settings() {
         {/* Theme Settings Section */}
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">
-            Theme
+            {t('theme.title')}
           </h2>
           <ThemeSelector />
         </div>
@@ -149,13 +160,13 @@ export default function Settings() {
         {/* OPML Import/Export Section */}
         <div className="rounded-lg border border-border bg-card p-6">
           <h2 className="mb-4 text-lg font-semibold text-card-foreground">
-            Import / Export
+            {t('opml.import')} / {t('opml.export')}
           </h2>
           
           <div className="space-y-4">
             <div>
               <h3 className="mb-1 text-sm font-medium text-card-foreground">
-                Export Subscriptions
+                {t('opml.export')}
               </h3>
               <p className="mb-3 text-xs text-muted-foreground">
                 Export your subscriptions as an OPML file for backup or migration
@@ -165,7 +176,7 @@ export default function Settings() {
 
             <div>
               <h3 className="mb-1 text-sm font-medium text-card-foreground">
-                Import Subscriptions
+                {t('opml.import')}
               </h3>
               <p className="mb-3 text-xs text-muted-foreground">
                 Import subscriptions from an OPML file

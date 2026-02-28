@@ -1,0 +1,11 @@
+{
+  "title": "Categories",
+  "createCategory": "Create Category",
+  "createCategoryTitle": "New Category",
+  "categoryName": "Category Name",
+  "categoryNamePlaceholder": "Category name",
+  "enterCategoryName": "Please enter a category name",
+  "createdSuccess": "Category created successfully!",
+  "deleteSuccess": "Category deleted successfully!",
+  "updateSuccess": "Category updated successfully!"
+}

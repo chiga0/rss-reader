@@ -19,6 +19,7 @@ import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
 /**
  * Route configuration array
  * Used by React Router's createBrowserRouter
+ * Note: Titles are now translated in the components that use them
  */
 export const routes: Route[] = [
   {
@@ -52,7 +53,7 @@ export const routes: Route[] = [
     path: '/favorites',
     element: <FavoritesPage />,
     handle: {
-      title: '收藏',
+      title: 'Favorites',
       icon: 'star',
     },
   },

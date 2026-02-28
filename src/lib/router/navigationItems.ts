@@ -10,6 +10,7 @@ import type { NavigationItem } from '@/types/navigation';
 /**
  * Navigation items for the application
  * Used by Navbar, MobileNav, and DesktopNav components
+ * Note: Labels are now translated in the component that uses them
  */
 export const navigationItems: NavigationItem[] = [
   // Main navigation group
@@ -22,7 +23,7 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     id: 'favorites',
-    label: '收藏',
+    label: 'Favorites',
     icon: Star,
     path: '/favorites',
     group: 'main',
