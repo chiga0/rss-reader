@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 export function MobileNav() {
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation('common');
 
   const isActivePath = (path: string) =>
     location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -55,7 +57,7 @@ export function MobileNav() {
                   onClick={handleClose}
                 >
                   <Icon className="h-4 w-4" aria-hidden />
-                  <span>{item.label}</span>
+                  <span>{t(`nav.${item.id}`)}</span>
                 </Link>
               </SheetClose>
             );

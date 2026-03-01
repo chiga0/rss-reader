@@ -21,5 +21,12 @@
     "title": "Language",
     "en": "English",
     "zh": "中文"
+  },
+  "nav": {
+    "feeds": "Feeds",
+    "favorites": "Favorites",
+    "history": "History",
+    "feed-management": "Manage Feeds",
+    "settings": "Settings"
   }
 }

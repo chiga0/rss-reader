@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import i18n from '../../src/locales';
 import { FeedsPage } from '@pages/FeedsPage';
 import { useStore } from '@hooks/useStore';
 import type { Feed, Category } from '@models/Feed';
@@ -59,7 +60,8 @@ function renderFeedsPage() {
 }
 
 describe('FeedsPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await i18n.changeLanguage('zh');
     useStore.setState({
       feeds: [],
       categories: [],
@@ -74,14 +76,14 @@ describe('FeedsPage', () => {
     it('should render the floating add feed button', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      const fab = screen.getByRole('button', { name: 'Add Feed' });
+      const fab = screen.getByRole('button', { name: '添加订阅' });
       expect(fab).toBeInTheDocument();
     });
 
     it('should open add feed dialog when FAB is clicked', () => {
       useStore.setState({ feeds: [makeFeed()] });
       renderFeedsPage();
-      const fab = screen.getByRole('button', { name: 'Add Feed' });
+      const fab = screen.getByRole('button', { name: '添加订阅' });
       fireEvent.click(fab);
       expect(useStore.getState().isAddFeedDialogOpen).toBe(true);
     });
@@ -156,7 +158,7 @@ describe('FeedsPage', () => {
     it('should show empty state when no feeds exist', () => {
       useStore.setState({ feeds: [], isLoading: false });
       renderFeedsPage();
-      expect(screen.getByText('No feeds yet')).toBeInTheDocument();
+      expect(screen.getByText('暂无订阅源')).toBeInTheDocument();
     });
   });
 });

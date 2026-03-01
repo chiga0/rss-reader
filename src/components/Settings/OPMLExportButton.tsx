@@ -4,11 +4,13 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { exportToOPML } from '@services/opmlService';
 import { logger } from '@lib/logger';
 
 export function OPMLExportButton() {
   const [isExporting, setIsExporting] = useState(false);
+  const { t } = useTranslation('settings');
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -44,7 +46,7 @@ export function OPMLExportButton() {
       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
       </svg>
-      {isExporting ? 'Exporting...' : 'Export OPML'}
+      {isExporting ? t('opml.exporting') : t('opml.export')}
     </button>
   );
 }

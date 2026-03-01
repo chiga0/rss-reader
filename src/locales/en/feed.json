@@ -12,6 +12,7 @@
   "refreshAll": "Refresh all feeds",
   "refreshFailed": "Refresh failed, please try again",
   "noFeeds": "No feeds yet",
+  "noFeedsHint": "Get started by adding your first RSS feed subscription",
   "noStarredFeeds": "No feeds with starred articles",
   "noUnreadFeeds": "No feeds with unread articles",
   "adding": "Adding...",
@@ -24,5 +25,7 @@
   },
   "starred": "Starred",
   "unread": "Unread",
-  "all": "All"
+  "all": "All",
+  "articles": "articles",
+  "updated": "Updated"
 }

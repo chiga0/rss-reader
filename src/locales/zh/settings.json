@@ -1,28 +1,49 @@
 {
-  "settings": {
-    "title": "设置",
-    "theme": {
-      "title": "主题",
-      "light": "浅色",
-      "dark": "深色",
-      "system": "跟随系统"
-    },
-    "refreshInterval": {
-      "title": "自动刷新间隔",
-      "manual": "手动刷新",
-      "minutes": "{{count}} 分钟",
-      "hours": "{{count}} 小时",
-      "description_manual": "订阅源将不会自动刷新，需要手动刷新",
-      "description_interval": "订阅源将每 {{interval}} 自动刷新"
-    },
-    "opml": {
-      "import": "导入 OPML",
-      "export": "导出 OPML",
-      "importSuccess": "OPML 导入成功！",
-      "exportSuccess": "OPML 导出成功！"
-    },
-    "version": {
-      "newVersion": "有新版本可用，请刷新页面获取最新内容"
-    }
+  "title": "设置",
+  "theme": {
+    "title": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "systemDefault": "🌓 跟随系统",
+    "lightMode": "☀️ 浅色",
+    "darkMode": "🌙 深色",
+    "systemDescription": "自动匹配系统主题偏好",
+    "modeDescription": "使用{{mode}}主题"
+  },
+  "refreshInterval": {
+    "title": "自动刷新间隔",
+    "manual": "手动刷新",
+    "minutes": "{{count}} 分钟",
+    "hours": "{{count}} 小时",
+    "description_manual": "订阅源将不会自动刷新，需要手动刷新",
+    "description_interval": "订阅源将每 {{interval}} 自动刷新"
+  },
+  "backgroundSync": {
+    "label": "启用后台同步",
+    "description": "自动在后台刷新订阅源"
+  },
+  "notifications": {
+    "title": "通知",
+    "label": "启用新文章通知",
+    "description": "有新文章时接收通知"
+  },
+  "opml": {
+    "import": "导入 OPML",
+    "export": "导出 OPML",
+    "importSuccess": "OPML 导入成功！",
+    "exportSuccess": "OPML 导出成功！",
+    "exportDescription": "将订阅源导出为 OPML 文件，用于备份或迁移",
+    "importDescription": "从 OPML 文件导入订阅源",
+    "exporting": "导出中...",
+    "importing": "导入订阅源中...",
+    "selectFile": "选择 OPML 文件",
+    "importCompleted": "导入完成：{{imported}} 个成功，{{failed}} 个失败",
+    "moreErrors": "...还有 {{count}} 个错误"
+  },
+  "saved": "✓ 设置已保存",
+  "saving": "保存中...",
+  "version": {
+    "newVersion": "有新版本可用，请刷新页面获取最新内容"
   }
 }

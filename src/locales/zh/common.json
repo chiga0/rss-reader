@@ -1,27 +1,32 @@
 {
-  "common": {
-    "loading": "加载中...",
-    "cancel": "取消",
-    "confirm": "确认",
-    "save": "保存",
-    "delete": "删除",
-    "edit": "编辑",
-    "add": "添加",
-    "refresh": "刷新",
-    "refreshing": "刷新中...",
-    "back": "返回",
-    "offline": {
-      "title": "当前处于离线状态",
-      "message": "请连接网络以使用此功能。"
-    },
-    "errors": {
-      "networkError": "网络错误，请重试",
-      "unknownError": "发生错误"
-    },
-    "language": {
-      "title": "语言",
-      "en": "English",
-      "zh": "中文"
-    }
+  "loading": "加载中...",
+  "cancel": "取消",
+  "confirm": "确认",
+  "save": "保存",
+  "delete": "删除",
+  "edit": "编辑",
+  "add": "添加",
+  "refresh": "刷新",
+  "refreshing": "刷新中...",
+  "back": "返回",
+  "offline": {
+    "title": "当前处于离线状态",
+    "message": "请连接网络以使用此功能。"
+  },
+  "errors": {
+    "networkError": "网络错误，请重试",
+    "unknownError": "发生错误"
+  },
+  "language": {
+    "title": "语言",
+    "en": "English",
+    "zh": "中文"
+  },
+  "nav": {
+    "feeds": "订阅源",
+    "favorites": "收藏",
+    "history": "历史",
+    "feed-management": "管理订阅",
+    "settings": "设置"
   }
 }
