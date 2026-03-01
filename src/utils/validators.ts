@@ -41,7 +41,7 @@ export function validateFeedURL(urlString: string): string | null {
   }
 
   // Additional validation for malformed URLs
-  if (!normalized.match(/^https?:\/\/[a-z0-9]+([-.]?[a-z0-9]+)*\.[a-z]{2,}(:[0-9]{1,5})?(\/.*)?$/i)) {
+  if (!normalized.match(/^https?:\/\/[a-z0-9]+(?:[-.][a-z0-9]+)*\.[a-z]{2,}(:[0-9]{1,5})?(\/.*)?$/i)) {
     if (!normalized.match(/^https?:\/\/localhost(:[0-9]{1,5})?(\/.*)?$/i)) {
       logger.warn('Invalid feed URL format', { url: urlString });
       return null;
