@@ -70,8 +70,8 @@ test.describe('AI Features - Translation & Summarization', () => {
   test('should display translate button with correct label', async ({ page }) => {
     await navigateToArticleDetail(page);
 
-    // Look for translate button with "翻译" text
-    const translateButton = page.locator('button').filter({ hasText: '翻译' });
+    // Look for translate button with Languages icon in the action bar
+    const translateButton = page.locator('button').filter({ hasText: /Translate|翻译/ });
     await expect(translateButton).toBeVisible({ timeout: 5_000 });
 
     // Button should have the Languages icon (svg.lucide-languages)
@@ -82,8 +82,8 @@ test.describe('AI Features - Translation & Summarization', () => {
   test('should display AI summarize button with correct label', async ({ page }) => {
     await navigateToArticleDetail(page);
 
-    // Look for AI summary button with "AI 总结" text
-    const summarizeButton = page.locator('button').filter({ hasText: 'AI 总结' });
+    // Look for AI summary button with Sparkles icon in the action bar
+    const summarizeButton = page.locator('button').filter({ hasText: /AI|总结|Summary|Summarize/ });
     await expect(summarizeButton).toBeVisible({ timeout: 5_000 });
 
     // Button should have the Sparkles icon (svg.lucide-sparkles)
@@ -107,12 +107,12 @@ test.describe('AI Features - Translation & Summarization', () => {
     await navigateToArticleDetail(page);
 
     // Verify translate button is clickable (not disabled)
-    const translateButton = page.locator('button').filter({ hasText: '翻译' });
+    const translateButton = page.locator('button').filter({ hasText: /Translate|翻译/ });
     await expect(translateButton).toBeVisible({ timeout: 5_000 });
     await expect(translateButton).toBeEnabled();
 
     // Verify AI summary button is clickable (not disabled)
-    const summarizeButton = page.locator('button').filter({ hasText: 'AI 总结' });
+    const summarizeButton = page.locator('button').filter({ hasText: /AI|总结|Summary|Summarize/ });
     await expect(summarizeButton).toBeVisible({ timeout: 5_000 });
     await expect(summarizeButton).toBeEnabled();
 

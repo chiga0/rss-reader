@@ -9,6 +9,29 @@ import { test, expect } from '@playwright/test';
 
 const TEST_FEED_URL = 'https://tailwindcss.com/feeds/feed.xml';
 
+/**
+ * Helper to ensure a feed is subscribed before test.
+ */
+async function ensureFeedSubscribed(page: import('@playwright/test').Page) {
+  await page.goto('/');
+  await page.waitForURL(/\/#\/feeds/, { timeout: 15_000 });
+  await page.waitForLoadState('networkidle');
+
+  const existingFeed = page.locator('a[href*="/feeds/"]').first();
+  if (!(await existingFeed.isVisible({ timeout: 3_000 }).catch(() => false))) {
+    const addButton = page.locator('button').filter({ hasText: /Add Feed|添加订阅/ });
+    const fabButton = page.locator('button.fixed, button[class*="fixed"]').last();
+    const targetButton = (await addButton.count()) > 0 ? addButton.first() : fabButton;
+    await targetButton.click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible({ timeout: 5_000 });
+    await dialog.locator('input#feed-url').fill(TEST_FEED_URL);
+    await dialog.locator('button[type="submit"]').click();
+    await expect(dialog).not.toBeVisible({ timeout: 30_000 });
+  }
+}
+
 test.describe('Reading History', () => {
   test('should display history page with heading', async ({ page }) => {
     await page.goto('/#/history');
@@ -22,27 +45,9 @@ test.describe('Reading History', () => {
   });
 
   test('should show articles in history after reading them', async ({ page }) => {
-    // Step 1: Go to feeds page
-    await page.goto('/');
-    await page.waitForURL(/\/#\/feeds/, { timeout: 15_000 });
-    await page.waitForLoadState('networkidle');
+    await ensureFeedSubscribed(page);
 
-    // Ensure feed is subscribed
-    const existingFeed = page.locator('a[href*="/feeds/"]').first();
-    if (!(await existingFeed.isVisible({ timeout: 3_000 }).catch(() => false))) {
-      const addButton = page.locator('button').filter({ hasText: /Add Feed|添加订阅/ });
-      const fabButton = page.locator('button.fixed, button[class*="fixed"]').last();
-      const targetButton = (await addButton.count()) > 0 ? addButton.first() : fabButton;
-      await targetButton.click();
-
-      const dialog = page.locator('[role="dialog"]');
-      await expect(dialog).toBeVisible({ timeout: 5_000 });
-      await dialog.locator('input#feed-url').fill(TEST_FEED_URL);
-      await dialog.locator('button[type="submit"]').click();
-      await expect(dialog).not.toBeVisible({ timeout: 30_000 });
-    }
-
-    // Step 2: Navigate to a feed and read an article
+    // Navigate to a feed and read an article
     const feedLink = page.locator('a[href*="/feeds/"]').first();
     await expect(feedLink).toBeVisible({ timeout: 10_000 });
     await feedLink.click();
@@ -57,11 +62,11 @@ test.describe('Reading History', () => {
     const articleTitle = page.locator('h1').first();
     await expect(articleTitle).toBeVisible({ timeout: 10_000 });
 
-    // Step 3: Navigate to history page
+    // Navigate to history page
     await page.goto('/#/history');
     await page.waitForLoadState('networkidle');
 
-    // Step 4: Verify history page shows the read article
+    // Verify history page shows the read article
     const heading = page.locator('h1').first();
     await expect(heading).toBeVisible({ timeout: 10_000 });
     const headingText = await heading.textContent();
