@@ -4,7 +4,6 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
 
 describe('Offline UI Indicator', () => {
   beforeEach(() => {

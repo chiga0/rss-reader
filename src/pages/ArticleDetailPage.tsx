@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, ExternalLink, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
 import { sanitizeHTML } from '@utils/sanitize';
 import { formatRelativeTime } from '@utils/dateFormat';

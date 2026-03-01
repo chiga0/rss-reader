@@ -27,7 +27,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Lint
-        run: npx eslint src tests --ext .ts,.tsx
+        run: npx eslint src tests
 
       - name: Run unit & integration tests
         run: npx vitest --run

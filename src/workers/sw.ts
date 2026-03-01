@@ -175,7 +175,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (_event) => {
   console.log('[SW] Service Worker installed');
   self.skipWaiting();
 });

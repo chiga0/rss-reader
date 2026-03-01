@@ -8,7 +8,7 @@ test.describe('T133: Theme Persistence E2E', () => {
     await page.reload();
   });
 
-  test('should apply system theme preference on first visit', async ({ page, browserName }) => {
+  test('should apply system theme preference on first visit', async ({ page, browserName: _browserName }) => {
     // Check if dark mode class is applied based on system preference
     const isDark = await page.evaluate(() => {
       return document.documentElement.classList.contains('dark');
@@ -64,7 +64,7 @@ test.describe('T133: Theme Persistence E2E', () => {
     await page.goto('/settings');
 
     // Get initial theme
-    const initialIsDark = await page.evaluate(() => 
+    const _initialIsDark = await page.evaluate(() => 
       document.documentElement.classList.contains('dark')
     );
 

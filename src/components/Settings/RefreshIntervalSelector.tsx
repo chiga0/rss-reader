@@ -8,7 +8,6 @@ interface RefreshIntervalSelectorProps {
 
 export const RefreshIntervalSelector: FC<RefreshIntervalSelectorProps> = ({ value, onChange }) => {
   const { t } = useTranslation('settings');
-  const { i18n } = useTranslation();
 
   const INTERVAL_OPTIONS = [
     { labelKey: 'refreshInterval.minutes', labelDefault: '15 分钟', value: 15 },

@@ -34,7 +34,7 @@ export function CreateCategoryDialog({ isOpen, onClose }: CreateCategoryDialogPr
       await createCategory(name.trim());
       setName('');
       onClose();
-    } catch (err) {
+    } catch (_err) {
       setError('创建失败，请重试');
     }
   };

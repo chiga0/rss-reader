@@ -5,7 +5,6 @@ import { ThemeSelector } from '../components/Settings/ThemeSelector';
 import { LanguageSelector } from '../components/Settings/LanguageSelector';
 import { OPMLExportButton } from '@components/Settings/OPMLExportButton';
 import { OPMLImportDialog } from '@components/Settings/OPMLImportDialog';
-import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
 import type { UserSettings } from '@models/Feed';
@@ -38,12 +37,6 @@ export default function Settings() {
 
   const handleRefreshIntervalChange = async (minutes: number) => {
     const newSettings = { ...settings, defaultRefreshIntervalMinutes: minutes };
-    setSettings(newSettings);
-    await saveSettings(newSettings);
-  };
-
-  const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
-    const newSettings = { ...settings, theme };
     setSettings(newSettings);
     await saveSettings(newSettings);
   };
