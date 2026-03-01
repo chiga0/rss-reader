@@ -9,6 +9,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e/ci',
+  // Sequential execution: feed subscription tests share browser-local IndexedDB state
   fullyParallel: false,
   forbidOnly: true,
   retries: 2,

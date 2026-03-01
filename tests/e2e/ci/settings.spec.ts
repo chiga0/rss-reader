@@ -36,19 +36,11 @@ test.describe('Settings Page', () => {
     if ((await enButton.count()) > 0 && (await zhButton.count()) > 0) {
       // Switch to English
       await enButton.first().click();
-      await page.waitForTimeout(500);
-
-      let heading = page.locator('h1').first();
-      let text = await heading.textContent();
-      expect(text).toMatch(/Settings/);
+      await expect(page.locator('h1').first()).toContainText('Settings', { timeout: 5_000 });
 
       // Switch to Chinese
       await zhButton.first().click();
-      await page.waitForTimeout(500);
-
-      heading = page.locator('h1').first();
-      text = await heading.textContent();
-      expect(text).toMatch(/设置/);
+      await expect(page.locator('h1').first()).toContainText('设置', { timeout: 5_000 });
     }
   });
 

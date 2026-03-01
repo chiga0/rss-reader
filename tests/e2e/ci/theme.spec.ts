@@ -34,13 +34,9 @@ test.describe('Theme Switching', () => {
 
     // Select dark theme
     await themeSelector.selectOption('dark');
-    await page.waitForTimeout(500);
 
-    // Verify dark class is applied
-    const isDark = await page.evaluate(() =>
-      document.documentElement.classList.contains('dark')
-    );
-    expect(isDark).toBe(true);
+    // Wait for dark class to be applied
+    await expect(page.locator('html.dark')).toBeAttached({ timeout: 5_000 });
 
     // Reload and verify persistence
     await page.reload();
@@ -62,11 +58,11 @@ test.describe('Theme Switching', () => {
 
     // Set to dark first
     await themeSelector.selectOption('dark');
-    await page.waitForTimeout(300);
+    await expect(page.locator('html.dark')).toBeAttached({ timeout: 5_000 });
 
     // Switch to light
     await themeSelector.selectOption('light');
-    await page.waitForTimeout(500);
+    await expect(page.locator('html:not(.dark)')).toBeAttached({ timeout: 5_000 });
 
     const isDark = await page.evaluate(() =>
       document.documentElement.classList.contains('dark')
@@ -86,7 +82,6 @@ test.describe('Theme Switching', () => {
 
     // Set to system
     await themeSelector.selectOption('system');
-    await page.waitForTimeout(500);
 
     await page.evaluate(() => localStorage.removeItem('theme'));
     await page.reload();
