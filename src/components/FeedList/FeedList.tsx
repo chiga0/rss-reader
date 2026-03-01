@@ -50,7 +50,7 @@ export function FeedList() {
     try {
       await refreshAllFeeds();
       await loadSyncState(); // Reload sync state after refresh
-    } catch (error) {
+    } catch (_error) {
       setError(t('refreshFailed'));
     } finally {
       setIsRefreshing(false);

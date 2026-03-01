@@ -34,7 +34,7 @@ export function OfflineIndicator() {
           />
         </svg>
         <span className="font-medium text-sm">
-          You're offline - Showing cached content
+          You&apos;re offline - Showing cached content
         </span>
       </div>
     </div>

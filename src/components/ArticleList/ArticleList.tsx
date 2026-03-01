@@ -123,7 +123,7 @@ export function ArticleList() {
             No articles yet
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            This feed doesn't have any articles
+            This feed doesn&apos;t have any articles
           </p>
         </div>
       )}

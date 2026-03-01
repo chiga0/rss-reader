@@ -109,7 +109,7 @@ describe('T132: Theme Switching Workflow Integration', () => {
     const { result } = renderHook(() => useTheme());
 
     // Verify initial state
-    const initialHasLight = !document.documentElement.classList.contains('dark');
+    const _initialHasLight = !document.documentElement.classList.contains('dark');
 
     act(() => {
       result.current.setTheme('dark');

@@ -74,14 +74,13 @@ async function parseSSEStream(
   }
 
   // Cancel the underlying reader when the signal fires so reader.read() resolves
-  const abortHandler = () => { reader.cancel().catch((_err) => { /* ignore cancel errors */ }); };
+  const abortHandler = () => { reader.cancel().catch(() => { /* ignore cancel errors */ }); };
   signal?.addEventListener('abort', abortHandler);
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
   let fullContent = '';
 
   try {
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;

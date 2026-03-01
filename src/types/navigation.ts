@@ -4,7 +4,7 @@
  * Feature: Replace global components with Shadcn UI
  */
 
-import { ReactNode, ComponentType } from 'react';
+import { ReactNode } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 /**

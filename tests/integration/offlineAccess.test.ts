@@ -3,7 +3,7 @@
  * Tests that users can access previously loaded articles when offline
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { storage } from '@lib/storage';
 import type { Feed, Article } from '@models/Feed';
 
