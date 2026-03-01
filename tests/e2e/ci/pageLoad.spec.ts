@@ -50,6 +50,25 @@ test.describe('Page Load and Navigation', () => {
     expect(headingText).toMatch(/History|历史/);
   });
 
+  test('should navigate to search page', async ({ page }) => {
+    await page.goto('/#/search');
+    await page.waitForLoadState('networkidle');
+
+    // Search page should have a search input
+    const searchInput = page.locator('input[type="search"]');
+    await expect(searchInput).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('should navigate to feed management page', async ({ page }) => {
+    await page.goto('/#/feed-management');
+    await page.waitForLoadState('networkidle');
+
+    const heading = page.locator('h1').first();
+    await expect(heading).toBeVisible({ timeout: 10_000 });
+    const headingText = await heading.textContent();
+    expect(headingText).toMatch(/Manage|管理/);
+  });
+
   test('should show 404 page for invalid routes', async ({ page }) => {
     await page.goto('/#/nonexistent-route');
     await page.waitForLoadState('networkidle');
