@@ -10,7 +10,6 @@ import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
 import { sanitizeHTML } from '@utils/sanitize';
 import { formatRelativeTime } from '@utils/dateFormat';
-import { calculateReadingTime, formatReadingTime } from '@utils/readingTime';
 import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
@@ -138,11 +137,6 @@ export function ArticleDetailPage() {
     [segments],
   );
 
-  const readingTime = useMemo(
-    () => formatReadingTime(calculateReadingTime(sanitizedContent)),
-    [sanitizedContent],
-  );
-
   const handleTranslate = useCallback(async () => {
     // If already translating, cancel the ongoing operation
     if (isTranslating) {
@@ -251,7 +245,6 @@ export function ArticleDetailPage() {
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {article.author && <span>By {article.author}</span>}
           <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
-          <span>{readingTime}</span>
           {article.readAt && (
             <span className="inline-flex items-center gap-1 text-xs">✓ Read</span>
           )}
