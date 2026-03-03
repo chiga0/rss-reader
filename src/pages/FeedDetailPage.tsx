@@ -3,13 +3,15 @@
  * Shows article list with read/unread status, mark-as-read, and favorites
  */
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
+import { useKeyboardShortcuts } from '@hooks/useKeyboardShortcuts';
 import { formatRelativeTime } from '@utils/dateFormat';
 import { fetchAndStoreArticles, getArticlesForFeed } from '@services/feedService';
 import { storage } from '@lib/storage';
+import { KeyboardShortcutsHelp } from '@components/Common/KeyboardShortcutsHelp';
 import type { Feed, Article } from '@/models';
 
 interface FeedDetailLoaderData {
@@ -25,6 +27,8 @@ export function FeedDetailPage() {
   const [articles, setArticles] = useState<Article[]>(loaderData.articles);
   const [feed, setFeed] = useState<Feed>(loaderData.feed);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Sync with loader data when navigating to a different feed
   useEffect(() => {
@@ -68,8 +72,27 @@ export function FeedDetailPage() {
 
   const unreadCount = sortedArticles.filter(a => !a.readAt).length;
 
+  const selectedIndexRef = useRef(selectedIndex);
+  selectedIndexRef.current = selectedIndex;
+
+  useKeyboardShortcuts({
+    j: () => setSelectedIndex((i) => Math.min(i + 1, sortedArticles.length - 1)),
+    k: () => setSelectedIndex((i) => Math.max(i - 1, 0)),
+    o: () => {
+      const article = sortedArticles[selectedIndexRef.current];
+      if (article) navigate(`/articles/${article.id}`);
+    },
+    Enter: () => {
+      const article = sortedArticles[selectedIndexRef.current];
+      if (article) navigate(`/articles/${article.id}`);
+    },
+    '?': () => setShowHelp((v) => !v),
+    Escape: () => navigate('/feeds'),
+  });
+
   return (
     <div className="mx-auto max-w-4xl">
+      {showHelp && <KeyboardShortcutsHelp onClose={() => setShowHelp(false)} />}
       {/* Header */}
       <div className="mb-6">
         <button
@@ -134,12 +157,13 @@ export function FeedDetailPage() {
         </div>
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {sortedArticles.map((article) => {
+          {sortedArticles.map((article, index) => {
             const isUnread = !article.readAt;
+            const isSelected = index === selectedIndex;
             return (
               <div
                 key={article.id}
-                className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
+                className={`flex items-start gap-3 p-4 transition-colors hover:bg-accent${isSelected ? ' ring-2 ring-inset ring-primary' : ''}`}
               >
                 {/* Unread Indicator */}
                 <div className="mt-2 flex h-2 w-2 shrink-0 items-center justify-center">
