@@ -34,6 +34,9 @@ export interface Article {
   isFavorite: boolean;
   createdAt: Date;
   deletedAt: Date | null;
+  enclosureUrl?: string;
+  enclosureType?: string;
+  enclosureLength?: number;
 }
 
 export interface Category {

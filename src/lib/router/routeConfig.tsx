@@ -4,6 +4,7 @@
  * Created: 2026-02-05
  */
 
+import type { ReactElement } from 'react';
 import type { Route } from '@/types/navigation';
 import { FeedsPage } from '@/pages/FeedsPage';
 import { FeedDetailPage } from '@/pages/FeedDetailPage';
@@ -16,6 +17,11 @@ import { SearchPage } from '@/pages/SearchPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AnnotationsPage } from '@/pages/AnnotationsPage';
 import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
+import { ErrorBoundary } from '@/components/Common/ErrorBoundary';
+
+function wrap(element: ReactElement): ReactElement {
+  return <ErrorBoundary>{element}</ErrorBoundary>;
+}
 
 /**
  * Route configuration array
@@ -25,7 +31,7 @@ import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
 export const routes: Route[] = [
   {
     path: '/feeds',
-    element: <FeedsPage />,
+    element: wrap(<FeedsPage />),
     loader: loadFeedsData,
     handle: {
       title: 'Feeds',
@@ -34,7 +40,7 @@ export const routes: Route[] = [
   },
   {
     path: '/feeds/:feedId',
-    element: <FeedDetailPage />,
+    element: wrap(<FeedDetailPage />),
     loader: loadFeedDetail,
     handle: {
       title: 'Feed Detail',
@@ -43,7 +49,7 @@ export const routes: Route[] = [
   },
   {
     path: '/articles/:articleId',
-    element: <ArticleDetailPage />,
+    element: wrap(<ArticleDetailPage />),
     loader: loadArticleDetail,
     handle: {
       title: 'Article',
@@ -52,7 +58,7 @@ export const routes: Route[] = [
   },
   {
     path: '/favorites',
-    element: <FavoritesPage />,
+    element: wrap(<FavoritesPage />),
     handle: {
       title: 'Favorites',
       icon: 'star',
@@ -60,7 +66,7 @@ export const routes: Route[] = [
   },
   {
     path: '/history',
-    element: <HistoryPage />,
+    element: wrap(<HistoryPage />),
     handle: {
       title: 'History',
       icon: 'clock',
@@ -68,7 +74,7 @@ export const routes: Route[] = [
   },
   {
     path: '/feed-management',
-    element: <FeedManagementPage />,
+    element: wrap(<FeedManagementPage />),
     handle: {
       title: 'Manage Subscriptions',
       icon: 'list',
@@ -76,7 +82,7 @@ export const routes: Route[] = [
   },
   {
     path: '/search',
-    element: <SearchPage />,
+    element: wrap(<SearchPage />),
     handle: {
       title: 'Search',
       icon: 'search',
@@ -84,7 +90,7 @@ export const routes: Route[] = [
   },
   {
     path: '/settings',
-    element: <Settings />,
+    element: wrap(<Settings />),
     handle: {
       title: 'Settings',
       icon: 'settings',
@@ -92,7 +98,7 @@ export const routes: Route[] = [
   },
   {
     path: '/annotations',
-    element: <AnnotationsPage />,
+    element: wrap(<AnnotationsPage />),
     handle: {
       title: 'Annotations',
       icon: 'highlighter',

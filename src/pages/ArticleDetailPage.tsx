@@ -16,6 +16,7 @@ import { calculateReadingTime, formatReadingTime } from '@utils/readingTime';
 import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
+import { PodcastPlayer } from '@components/ArticleView/PodcastPlayer';
 import type { Feed, Article } from '@/models';
 
 interface ArticleDetailLoaderData {
@@ -344,6 +345,11 @@ export function ArticleDetailPage() {
         <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           {error}
         </div>
+      )}
+
+      {/* Podcast Player */}
+      {article.enclosureUrl && article.enclosureType?.startsWith('audio/') && (
+        <PodcastPlayer url={article.enclosureUrl} title={article.title} />
       )}
 
       {/* Featured Image */}

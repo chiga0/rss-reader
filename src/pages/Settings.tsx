@@ -18,11 +18,38 @@ const DEFAULT_SETTINGS: UserSettings = {
   enableBackgroundSync: true,
 };
 
+const SYNC_CONFIG_KEY = 'rss-reader-sync-config';
+const NEWSLETTER_ID_KEY = 'rss-reader-newsletter-id';
+
+function getOrCreateNewsletterId(): string {
+  let id = localStorage.getItem(NEWSLETTER_ID_KEY);
+  if (!id) {
+    id = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem(NEWSLETTER_ID_KEY, id);
+  }
+  return id;
+}
+
+interface SyncConfig {
+  enabled: boolean;
+  serverUrl: string;
+  apiKey: string;
+}
+
 export default function Settings() {
   const { t } = useTranslation('settings');
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Sync section state
+  const [syncConfig, setSyncConfig] = useState<SyncConfig>({ enabled: false, serverUrl: '', apiKey: '' });
+  const [syncToast, setSyncToast] = useState('');
+
+  // Newsletter section state
+  const [newsletterId] = useState(() => getOrCreateNewsletterId());
+  const [copied, setCopied] = useState(false);
+  const newsletterEmail = `${newsletterId}@newsletters.rss-reader.app`;
 
   // Load settings on mount
   useEffect(() => {
@@ -33,6 +60,12 @@ export default function Settings() {
       }
     };
     loadSettings();
+
+    // Load sync config
+    const raw = localStorage.getItem(SYNC_CONFIG_KEY);
+    if (raw) {
+      try { setSyncConfig(JSON.parse(raw)); } catch { /* ignore */ }
+    }
   }, []);
 
   const handleRefreshIntervalChange = async (minutes: number) => {
@@ -177,6 +210,101 @@ export default function Settings() {
               <OPMLImportDialog />
             </div>
           </div>
+        </div>
+
+        {/* Sync Section */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold text-card-foreground">Sync</h2>
+          <label className="flex items-center gap-2" htmlFor="enable-sync">
+            <input
+              id="enable-sync"
+              type="checkbox"
+              checked={syncConfig.enabled}
+              onChange={(e) => setSyncConfig((prev) => ({ ...prev, enabled: e.target.checked }))}
+              className="rounded border-border text-primary focus:ring-primary"
+            />
+            <span className="text-sm text-card-foreground">Enable sync</span>
+          </label>
+          {syncConfig.enabled && (
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-card-foreground" htmlFor="sync-server-url">
+                  Server URL
+                </label>
+                <input
+                  id="sync-server-url"
+                  type="url"
+                  value={syncConfig.serverUrl}
+                  onChange={(e) => setSyncConfig((prev) => ({ ...prev, serverUrl: e.target.value }))}
+                  placeholder="https://sync.example.com"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-card-foreground" htmlFor="sync-api-key">
+                  API Key
+                </label>
+                <input
+                  id="sync-api-key"
+                  type="password"
+                  value={syncConfig.apiKey}
+                  onChange={(e) => setSyncConfig((prev) => ({ ...prev, apiKey: e.target.value }))}
+                  placeholder="Your API key"
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            </div>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => {
+                localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(syncConfig));
+                setSyncToast('Sync settings saved.');
+                setTimeout(() => setSyncToast(''), 2000);
+              }}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setSyncToast('Sync feature coming soon');
+                setTimeout(() => setSyncToast(''), 2000);
+              }}
+              className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-card-foreground hover:bg-accent"
+            >
+              Sync Now
+            </button>
+          </div>
+          {syncToast && (
+            <p className="mt-2 text-xs text-muted-foreground">{syncToast}</p>
+          )}
+        </div>
+
+        {/* Newsletter Section */}
+        <div className="rounded-lg border border-border bg-card p-6">
+          <h2 className="mb-4 text-lg font-semibold text-card-foreground">Newsletter</h2>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Your unique forwarding address:
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 truncate rounded-md border border-border bg-secondary px-3 py-2 text-sm text-secondary-foreground">
+              {newsletterEmail}
+            </code>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(newsletterEmail).catch(() => {});
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="shrink-0 rounded-md border border-border px-3 py-2 text-sm font-medium text-card-foreground hover:bg-accent"
+            >
+              {copied ? 'Copied!' : 'Copy address'}
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Forward newsletters to this address to read them here. Backend sync required.
+          </p>
         </div>
       </div>
 

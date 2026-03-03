@@ -12,6 +12,7 @@ import { formatRelativeTime } from '@utils/dateFormat';
 import { fetchAndStoreArticles, getArticlesForFeed } from '@services/feedService';
 import { storage } from '@lib/storage';
 import { KeyboardShortcutsHelp } from '@components/Common/KeyboardShortcutsHelp';
+import { ArticleCardSkeleton } from '@components/Common/Skeleton';
 import { discoverFeeds } from '@utils/feedDiscovery';
 import type { Feed, Article } from '@/models';
 
@@ -36,6 +37,7 @@ export function FeedDetailPage() {
   const [articles, setArticles] = useState<Article[]>(loaderData.articles);
   const [feed, setFeed] = useState<Feed>(loaderData.feed);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingArticles, setIsLoadingArticles] = useState(loaderData.articles.length === 0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
   const [suggestedFeeds, setSuggestedFeeds] = useState<{ url: string; title: string }[]>([]);
@@ -45,6 +47,7 @@ export function FeedDetailPage() {
   useEffect(() => {
     setArticles(loaderData.articles);
     setFeed(loaderData.feed);
+    setIsLoadingArticles(loaderData.articles.length === 0);
   }, [loaderData]);
 
   useEffect(() => {
@@ -174,7 +177,13 @@ export function FeedDetailPage() {
       )}
 
       {/* Article List */}
-      {sortedArticles.length === 0 ? (
+      {isLoadingArticles ? (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <ArticleCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : sortedArticles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <RefreshCw className="mb-4 h-12 w-12 text-muted-foreground" />
           <h2 className="mb-2 text-lg font-semibold text-foreground">No articles yet</h2>
