@@ -4,7 +4,7 @@
  * Created: 2026-02-05
  */
 
-import { Rss, Star, Clock, Settings, ListChecks } from 'lucide-react';
+import { Rss, Star, Clock, Settings, ListChecks, Highlighter } from 'lucide-react';
 import type { NavigationItem } from '@/types/navigation';
 
 /**
@@ -37,6 +37,13 @@ export const navigationItems: NavigationItem[] = [
   },
   
   // User navigation group
+  {
+    id: 'annotations',
+    label: 'Annotations',
+    icon: Highlighter,
+    path: '/annotations',
+    group: 'user',
+  },
   {
     id: 'feed-management',
     label: 'Manage Feeds',

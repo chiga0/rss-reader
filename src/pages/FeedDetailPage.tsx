@@ -12,6 +12,7 @@ import { formatRelativeTime } from '@utils/dateFormat';
 import { fetchAndStoreArticles, getArticlesForFeed } from '@services/feedService';
 import { storage } from '@lib/storage';
 import { KeyboardShortcutsHelp } from '@components/Common/KeyboardShortcutsHelp';
+import { discoverFeeds } from '@utils/feedDiscovery';
 import type { Feed, Article } from '@/models';
 
 interface FeedDetailLoaderData {
@@ -20,21 +21,47 @@ interface FeedDetailLoaderData {
   isOffline: boolean;
 }
 
+const FALLBACK_FEEDS = [
+  { url: 'https://feeds.feedburner.com/TechCrunch', title: 'TechCrunch' },
+  { url: 'https://www.theverge.com/rss/index.xml', title: 'The Verge' },
+  { url: 'https://hnrss.org/frontpage', title: 'Hacker News' },
+  { url: 'https://feeds.arstechnica.com/arstechnica/index', title: 'Ars Technica' },
+  { url: 'https://www.wired.com/feed/rss', title: 'Wired' },
+];
+
 export function FeedDetailPage() {
   const loaderData = useLoaderData() as FeedDetailLoaderData;
   const navigate = useNavigate();
-  const { toggleArticleFavorite } = useStore();
+  const { toggleArticleFavorite, subscribeFeed } = useStore();
   const [articles, setArticles] = useState<Article[]>(loaderData.articles);
   const [feed, setFeed] = useState<Feed>(loaderData.feed);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showHelp, setShowHelp] = useState(false);
+  const [suggestedFeeds, setSuggestedFeeds] = useState<{ url: string; title: string }[]>([]);
+  const [subscribingUrl, setSubscribingUrl] = useState<string | null>(null);
 
   // Sync with loader data when navigating to a different feed
   useEffect(() => {
     setArticles(loaderData.articles);
     setFeed(loaderData.feed);
   }, [loaderData]);
+
+  useEffect(() => {
+    if (!feed.link) {
+      setSuggestedFeeds(FALLBACK_FEEDS.slice(0, 5));
+      return;
+    }
+    discoverFeeds(feed.link).then((discovered) => {
+      setSuggestedFeeds(discovered.length > 0 ? discovered.slice(0, 5) : FALLBACK_FEEDS.slice(0, 5));
+    });
+  }, [feed.id, feed.link]);
+
+  const handleSubscribeSuggested = useCallback(async (url: string) => {
+    setSubscribingUrl(url);
+    await subscribeFeed(url);
+    setSubscribingUrl(null);
+  }, [subscribeFeed]);
 
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
@@ -220,6 +247,29 @@ export function FeedDetailPage() {
               </div>
             );
           })}
+        </div>
+      )}
+      {/* Suggested Feeds */}
+      {suggestedFeeds.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Suggested Feeds</h2>
+          <div className="divide-y divide-border rounded-lg border border-border bg-card">
+            {suggestedFeeds.map((sf) => (
+              <div key={sf.url} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-card-foreground">{sf.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{sf.url}</p>
+                </div>
+                <button
+                  onClick={() => handleSubscribeSuggested(sf.url)}
+                  disabled={subscribingUrl === sf.url}
+                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {subscribingUrl === sf.url ? 'Subscribing…' : 'Subscribe'}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

@@ -14,6 +14,7 @@ import Settings from '@/pages/Settings';
 import { FeedManagementPage } from '@/pages/FeedManagementPage';
 import { SearchPage } from '@/pages/SearchPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { AnnotationsPage } from '@/pages/AnnotationsPage';
 import { loadFeedsData, loadFeedDetail, loadArticleDetail } from './loaders';
 
 /**
@@ -87,6 +88,14 @@ export const routes: Route[] = [
     handle: {
       title: 'Settings',
       icon: 'settings',
+    },
+  },
+  {
+    path: '/annotations',
+    element: <AnnotationsPage />,
+    handle: {
+      title: 'Annotations',
+      icon: 'highlighter',
     },
   },
   {

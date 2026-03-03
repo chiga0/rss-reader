@@ -1,28 +1,58 @@
 /**
- * ArticleActionBar - Fixed bottom banner with Favorite, Translate, and AI Summary buttons.
+ * ArticleActionBar - Fixed bottom banner with Favorite, Translate, AI Summary, Annotate, and Share buttons.
  */
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Heart, Languages, Sparkles, Loader2 } from 'lucide-react';
+import { Heart, Languages, Sparkles, Loader2, Highlighter, Share2 } from 'lucide-react';
 
 interface ArticleActionBarProps {
   isFavorite: boolean;
   isTranslating: boolean;
   isSummarizing: boolean;
+  isAnnotating: boolean;
+  articleLink?: string;
+  articleTitle?: string;
   onToggleFavorite: () => void;
   onTranslate: () => void;
   onSummarize: () => void;
+  onToggleAnnotate: () => void;
 }
 
 export function ArticleActionBar({
   isFavorite,
   isTranslating,
   isSummarizing,
+  isAnnotating,
+  articleLink,
+  articleTitle,
   onToggleFavorite,
   onTranslate,
   onSummarize,
+  onToggleAnnotate,
 }: ArticleActionBarProps) {
   const { t } = useTranslation('article');
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = articleLink || window.location.href;
+    const title = articleTitle || document.title;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+      } catch {
+        // user cancelled or unsupported — fall through
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      } catch {
+        // clipboard unavailable
+      }
+    }
+  };
 
   return (
     <div
@@ -67,6 +97,30 @@ export function ArticleActionBar({
             <Sparkles className="h-5 w-5" />
           )}
           <span>{isSummarizing ? '停止总结' : 'AI 总结'}</span>
+        </button>
+
+        {/* Annotate */}
+        <button
+          onClick={onToggleAnnotate}
+          className={`inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs transition-colors ${
+            isAnnotating
+              ? 'text-amber-600 dark:text-amber-400'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Highlight / Annotate"
+        >
+          <Highlighter className="h-5 w-5" />
+          <span>{isAnnotating ? 'Done' : 'Annotate'}</span>
+        </button>
+
+        {/* Share */}
+        <button
+          onClick={handleShare}
+          className="inline-flex flex-col items-center gap-0.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          title="Share article"
+        >
+          <Share2 className="h-5 w-5" />
+          <span>{copied ? 'Copied!' : 'Share'}</span>
         </button>
       </div>
     </div>
