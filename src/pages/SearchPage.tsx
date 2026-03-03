@@ -1,14 +1,19 @@
 /**
  * Search Page
  * Secondary page with back button, search input, and results
- * Searches across feed titles and article titles/summaries
+ * Searches across feed titles and article titles/summaries with advanced filters
  */
 
-import { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search as SearchIcon, Rss, FileText } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Search as SearchIcon, Rss, FileText, SlidersHorizontal, X } from 'lucide-react';
 import { storage } from '@lib/storage';
 import type { Feed, Article } from '@models/Feed';
+
+const MS_PER_DAY = 86_400_000;
+
+type DateFilter = 'all' | 'today' | '7days' | '30days';
+type ReadStatus = 'all' | 'unread' | 'read';
 
 interface SearchResults {
   feeds: Feed[];
@@ -17,11 +22,59 @@ interface SearchResults {
 
 export function SearchPage() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const [showFilters, setShowFilters] = useState(false);
+  const [feedFilter, setFeedFilter] = useState<string[]>(() =>
+    searchParams.getAll('feed')
+  );
+  const [dateFilter, setDateFilter] = useState<DateFilter>(
+    () => (searchParams.get('date') as DateFilter) ?? 'all'
+  );
+  const [readStatus, setReadStatus] = useState<ReadStatus>(
+    () => (searchParams.get('read') as ReadStatus) ?? 'all'
+  );
+  const [starredOnly, setStarredOnly] = useState(() => searchParams.get('starred') === '1');
+
+  const [allFeeds, setAllFeeds] = useState<Feed[]>([]);
   const [results, setResults] = useState<SearchResults>({ feeds: [], articles: [] });
   const [hasSearched, setHasSearched] = useState(false);
 
-  const performSearch = useCallback(async (searchQuery: string) => {
+  // Load all feeds once for the filter list
+  useEffect(() => {
+    storage.init().catch(() => {}).then(() =>
+      storage.getAll('feeds').then((feeds) => setAllFeeds(feeds.filter((f) => !f.deletedAt)))
+    );
+  }, []);
+
+  // Sync state → URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    feedFilter.forEach((id) => params.append('feed', id));
+    if (dateFilter !== 'all') params.set('date', dateFilter);
+    if (readStatus !== 'all') params.set('read', readStatus);
+    if (starredOnly) params.set('starred', '1');
+    setSearchParams(params, { replace: true });
+  }, [query, feedFilter, dateFilter, readStatus, starredOnly, setSearchParams]);
+
+  const hasActiveFilters = feedFilter.length > 0 || dateFilter !== 'all' || readStatus !== 'all' || starredOnly;
+
+  const clearFilters = useCallback(() => {
+    setFeedFilter([]);
+    setDateFilter('all');
+    setReadStatus('all');
+    setStarredOnly(false);
+  }, []);
+
+  const performSearch = useCallback(async (
+    searchQuery: string,
+    feeds: string[],
+    date: DateFilter,
+    read: ReadStatus,
+    starred: boolean,
+  ) => {
     if (!searchQuery.trim()) {
       setResults({ feeds: [], articles: [] });
       setHasSearched(false);
@@ -34,28 +87,39 @@ export function SearchPage() {
     try {
       await storage.init().catch(() => {});
 
-      // Search feeds
-      const allFeeds = (await storage.getAll('feeds')).filter(f => !f.deletedAt);
-      const matchedFeeds = allFeeds.filter(
+      const allFeedsData = (await storage.getAll('feeds')).filter((f) => !f.deletedAt);
+      const matchedFeeds = allFeedsData.filter(
         (f) =>
           f.title.toLowerCase().includes(q) ||
           f.description?.toLowerCase().includes(q) ||
           f.url.toLowerCase().includes(q)
       );
 
-      // Search articles
-      const allArticles = (await storage.getAll('articles')).filter(a => !a.deletedAt);
-      const matchedArticles = allArticles
-        .filter(
-          (a) =>
-            a.title.toLowerCase().includes(q) ||
-            a.summary?.toLowerCase().includes(q)
-        )
-        .slice(0, 50); // Limit results
+      const allArticles = (await storage.getAll('articles')).filter((a) => !a.deletedAt);
+      const now = Date.now();
+      const feedMap = new Map(allFeedsData.map((f) => [f.id, f.title]));
 
-      // Attach feed titles to articles
-      const feedMap = new Map(allFeeds.map(f => [f.id, f.title]));
-      const articlesWithFeedTitle = matchedArticles.map(a => ({
+      const matchedArticles = allArticles
+        .filter((a) => a.title.toLowerCase().includes(q) || a.summary?.toLowerCase().includes(q))
+        .filter((a) => (feeds.length === 0 ? true : feeds.includes(a.feedId)))
+        .filter((a) => {
+          if (date === 'all') return true;
+          const ms = now - new Date(a.publishedAt).getTime();
+          if (date === 'today') return ms < MS_PER_DAY;
+          if (date === '7days') return ms < 7 * MS_PER_DAY;
+          if (date === '30days') return ms < 30 * MS_PER_DAY;
+          return true;
+        })
+        .filter((a) => {
+          if (read === 'all') return true;
+          if (read === 'unread') return !a.readAt;
+          if (read === 'read') return !!a.readAt;
+          return true;
+        })
+        .filter((a) => (starred ? a.isFavorite : true))
+        .slice(0, 50);
+
+      const articlesWithFeedTitle = matchedArticles.map((a) => ({
         ...a,
         feedTitle: feedMap.get(a.feedId),
       }));
@@ -66,18 +130,31 @@ export function SearchPage() {
     }
   }, []);
 
-  // Debounced search
+  // Debounced search with filters
   useEffect(() => {
     const timer = setTimeout(() => {
-      performSearch(query);
+      performSearch(query, feedFilter, dateFilter, readStatus, starredOnly);
     }, 300);
     return () => clearTimeout(timer);
-  }, [query, performSearch]);
+  }, [query, feedFilter, dateFilter, readStatus, starredOnly, performSearch]);
+
+  const DATE_OPTIONS: { label: string; value: DateFilter }[] = useMemo(() => [
+    { label: 'All', value: 'all' },
+    { label: 'Today', value: 'today' },
+    { label: '7 days', value: '7days' },
+    { label: '30 days', value: '30days' },
+  ], []);
+
+  const READ_OPTIONS: { label: string; value: ReadStatus }[] = useMemo(() => [
+    { label: 'All', value: 'all' },
+    { label: 'Unread', value: 'unread' },
+    { label: 'Read', value: 'read' },
+  ], []);
 
   return (
     <div className="mx-auto max-w-3xl">
       {/* Search Header */}
-      <div className="mb-6 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
           className="shrink-0 rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -96,7 +173,106 @@ export function SearchPage() {
             autoFocus
           />
         </div>
+        <button
+          onClick={() => setShowFilters((v) => !v)}
+          className={`shrink-0 rounded-md p-2 transition-colors hover:bg-accent ${hasActiveFilters ? 'text-primary' : 'text-muted-foreground hover:text-accent-foreground'}`}
+          aria-label="Toggle filters"
+          title="Filters"
+        >
+          <SlidersHorizontal className="h-5 w-5" />
+        </button>
       </div>
+
+      {/* Filter Bar */}
+      {showFilters && (
+        <div className="mb-4 rounded-lg border border-border bg-card p-4 space-y-4">
+          {/* Feed filter */}
+          {allFeeds.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Feeds</p>
+              <div className="flex flex-wrap gap-2">
+                {allFeeds.map((feed) => (
+                  <label key={feed.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={feedFilter.includes(feed.id)}
+                      onChange={(e) =>
+                        setFeedFilter((prev) =>
+                          e.target.checked ? [...prev, feed.id] : prev.filter((id) => id !== feed.id)
+                        )
+                      }
+                      className="h-3.5 w-3.5 rounded border-border accent-primary"
+                    />
+                    <span className="text-card-foreground">{feed.title}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Date filter */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Date</p>
+            <div className="flex gap-2 flex-wrap">
+              {DATE_OPTIONS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  onClick={() => setDateFilter(value)}
+                  className={`rounded-md px-3 py-1 text-sm transition-colors ${
+                    dateFilter === value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Read status filter */}
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
+            <div className="flex gap-2 flex-wrap">
+              {READ_OPTIONS.map(({ label, value }) => (
+                <button
+                  key={value}
+                  onClick={() => setReadStatus(value)}
+                  className={`rounded-md px-3 py-1 text-sm transition-colors ${
+                    readStatus === value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border bg-secondary text-secondary-foreground hover:bg-accent'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Starred toggle + clear */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={starredOnly}
+                onChange={(e) => setStarredOnly(e.target.checked)}
+                className="h-3.5 w-3.5 rounded border-border accent-primary"
+              />
+              <span className="text-card-foreground">Starred only</span>
+            </label>
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+                Clear filters
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Results */}
       {hasSearched && results.feeds.length === 0 && results.articles.length === 0 && (
@@ -171,3 +347,4 @@ export function SearchPage() {
     </div>
   );
 }
+

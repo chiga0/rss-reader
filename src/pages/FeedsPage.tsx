@@ -13,6 +13,7 @@ import { useStore } from '@hooks/useStore';
 import { storage } from '@lib/storage';
 import { syncService } from '@services/syncService';
 import { AddFeedDialog } from '@components/AddFeedDialog/AddFeedDialog';
+import { FeedCardSkeleton } from '@components/Common/Skeleton';
 import type { Article } from '@models/Feed';
 
 export function FeedsPage() {
@@ -186,8 +187,10 @@ export function FeedsPage() {
 
       {/* Loading */}
       {isLoading && !feeds.length && (
-        <div className="flex items-center justify-center py-16">
-          <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <FeedCardSkeleton key={i} />
+          ))}
         </div>
       )}
 

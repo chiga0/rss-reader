@@ -7,12 +7,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, RefreshCw } from 'lucide-react';
+import { storage } from '@lib/storage';
+import type { Annotation } from '@/models';
 import { useStore } from '@hooks/useStore';
 import { sanitizeHTML } from '@utils/sanitize';
 import { formatRelativeTime } from '@utils/dateFormat';
+import { calculateReadingTime, formatReadingTime } from '@utils/readingTime';
 import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
+import { PodcastPlayer } from '@components/ArticleView/PodcastPlayer';
 import type { Feed, Article } from '@/models';
 
 interface ArticleDetailLoaderData {
@@ -54,6 +58,14 @@ export function ArticleDetailPage() {
   const [fullContentError, setFullContentError] = useState<string | null>(null);
 
   const [isFavorite, setIsFavorite] = useState(article.isFavorite);
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
+  const [pendingSelection, setPendingSelection] = useState<{
+    text: string; start: number; end: number;
+  } | null>(null);
+  const [annotationNote, setAnnotationNote] = useState('');
+  const [annotationColor, setAnnotationColor] = useState<Annotation['color']>('yellow');
+  const contentRef = useRef<HTMLDivElement>(null);
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -70,6 +82,13 @@ export function ArticleDetailPage() {
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
     };
+  }, [loaderArticle.id]);
+
+  // Load existing annotations for this article
+  useEffect(() => {
+    storage.getAllByIndex('annotations', 'articleId', loaderArticle.id)
+      .then(setAnnotations)
+      .catch(() => {});
   }, [loaderArticle.id]);
 
   // Auto-fetch full content from original URL if RSS content appears incomplete
@@ -131,6 +150,11 @@ export function ArticleDetailPage() {
     : article.summary || '';
 
   const segments = useMemo(() => parseContentSegments(sanitizedContent), [sanitizedContent]);
+
+  const readingTime = useMemo(
+    () => formatReadingTime(calculateReadingTime(sanitizedContent)),
+    [sanitizedContent],
+  );
 
   const plainText = useMemo(
     () => segments.map((s) => s.text).filter(Boolean).join('\n\n'),
@@ -221,6 +245,62 @@ export function ArticleDetailPage() {
 
 
 
+  const handleToggleAnnotate = useCallback(() => {
+    setIsAnnotating((v) => !v);
+    setPendingSelection(null);
+  }, []);
+
+  const handleContentMouseUp = useCallback(() => {
+    if (!isAnnotating) return;
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return;
+    const text = selection.toString().trim();
+    if (!text) return;
+    const range = selection.getRangeAt(0);
+    // Compute character offsets relative to content container plain text
+    const container = contentRef.current;
+    if (!container) return;
+    const preRange = document.createRange();
+    preRange.setStart(container, 0);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const start = preRange.toString().length;
+    const end = start + text.length;
+    setPendingSelection({ text, start, end });
+    setAnnotationNote('');
+    setAnnotationColor('yellow');
+  }, [isAnnotating]);
+
+  const handleSaveAnnotation = useCallback(async () => {
+    if (!pendingSelection) return;
+    const annotation: Annotation = {
+      id: crypto.randomUUID(),
+      articleId: article.id,
+      feedId: feed.id,
+      selectedText: pendingSelection.text,
+      note: annotationNote.trim() || undefined,
+      color: annotationColor,
+      startOffset: pendingSelection.start,
+      endOffset: pendingSelection.end,
+      createdAt: new Date(),
+    };
+    await storage.put('annotations', annotation);
+    setAnnotations((prev) => [...prev, annotation]);
+    setPendingSelection(null);
+    window.getSelection()?.removeAllRanges();
+  }, [pendingSelection, annotationNote, annotationColor, article.id, feed.id]);
+
+  const handleDeleteAnnotation = useCallback(async (id: string) => {
+    await storage.delete('annotations', id);
+    setAnnotations((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
+  const annotationColorClass: Record<Annotation['color'], string> = {
+    yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
+    green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
+    blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
+    pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
+  };
+
   return (
     <div className="mx-auto max-w-3xl overflow-x-hidden pb-20">
       {/* Navigation */}
@@ -245,6 +325,7 @@ export function ArticleDetailPage() {
         <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {article.author && <span>By {article.author}</span>}
           <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
+          <span>{readingTime}</span>
           {article.readAt && (
             <span className="inline-flex items-center gap-1 text-xs">✓ Read</span>
           )}
@@ -264,6 +345,11 @@ export function ArticleDetailPage() {
         <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           {error}
         </div>
+      )}
+
+      {/* Podcast Player */}
+      {article.enclosureUrl && article.enclosureType?.startsWith('audio/') && (
+        <PodcastPlayer url={article.enclosureUrl} title={article.title} />
       )}
 
       {/* Featured Image */}
@@ -293,8 +379,61 @@ export function ArticleDetailPage() {
         </div>
       )}
 
+      {/* Annotation mode banner */}
+      {isAnnotating && (
+        <div className="mb-4 rounded-md border border-amber-400 bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+          Annotation mode: select text in the article to highlight it.
+        </div>
+      )}
+
+      {/* Annotation creation popover */}
+      {pendingSelection && (
+        <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-md">
+          <p className="mb-2 text-sm font-medium text-foreground">
+            Selected: <span className="italic text-muted-foreground">&ldquo;{pendingSelection.text.slice(0, 80)}{pendingSelection.text.length > 80 ? '…' : ''}&rdquo;</span>
+          </p>
+          <div className="mb-3 flex gap-2">
+            {(['yellow', 'green', 'blue', 'pink'] as const).map((c) => (
+              <button
+                key={c}
+                onClick={() => setAnnotationColor(c)}
+                className={`h-6 w-6 rounded-full border-2 transition-transform ${
+                  annotationColor === c ? 'scale-125 border-foreground' : 'border-transparent'
+                } ${
+                  c === 'yellow' ? 'bg-yellow-400' :
+                  c === 'green' ? 'bg-green-400' :
+                  c === 'blue' ? 'bg-blue-400' : 'bg-pink-400'
+                }`}
+                aria-label={c}
+              />
+            ))}
+          </div>
+          <textarea
+            value={annotationNote}
+            onChange={(e) => setAnnotationNote(e.target.value)}
+            placeholder="Add a note (optional)"
+            rows={2}
+            className="mb-3 w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSaveAnnotation}
+              className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => { setPendingSelection(null); window.getSelection()?.removeAllRanges(); }}
+              className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Article Content (rendered as segments to support inline translations) */}
-      <div className="article-content">
+      <div ref={contentRef} className="article-content" onMouseUp={handleContentMouseUp}>
         {segments.map((segment, index) => (
           <div key={index}>
             <div dangerouslySetInnerHTML={{ __html: segment.html }} />
@@ -307,6 +446,27 @@ export function ArticleDetailPage() {
           </div>
         ))}
       </div>
+
+      {/* Saved Annotations */}
+      {annotations.length > 0 && (
+        <div className="mt-8 rounded-lg border border-border bg-card p-4">
+          <h3 className="mb-3 text-sm font-semibold text-foreground">Highlights &amp; Annotations</h3>
+          <ul className="space-y-2">
+            {annotations.map((ann) => (
+              <li key={ann.id} className={`rounded-md border px-3 py-2 text-sm ${annotationColorClass[ann.color]}`}>
+                <p className="font-medium">&ldquo;{ann.selectedText}&rdquo;</p>
+                {ann.note && <p className="mt-0.5 text-xs text-muted-foreground">{ann.note}</p>}
+                <button
+                  onClick={() => handleDeleteAnnotation(ann.id)}
+                  className="mt-1 text-xs text-destructive hover:underline"
+                >
+                  Delete
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Original Article Link + Load Full Content */}
       {article.link && (
@@ -338,9 +498,13 @@ export function ArticleDetailPage() {
         isFavorite={isFavorite}
         isTranslating={isTranslating}
         isSummarizing={isSummarizing}
+        isAnnotating={isAnnotating}
+        articleLink={article.link}
+        articleTitle={article.title}
         onToggleFavorite={handleFavoriteToggle}
         onTranslate={handleTranslate}
         onSummarize={handleSummarize}
+        onToggleAnnotate={handleToggleAnnotate}
       />
     </div>
   );

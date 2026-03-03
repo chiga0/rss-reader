@@ -34,6 +34,9 @@ export interface Article {
   isFavorite: boolean;
   createdAt: Date;
   deletedAt: Date | null;
+  enclosureUrl?: string;
+  enclosureType?: string;
+  enclosureLength?: number;
 }
 
 export interface Category {
@@ -76,6 +79,18 @@ export interface FeedState {
 }
 
 export type FeedStatus = 'idle' | 'loading' | 'success' | 'error';
+
+export interface Annotation {
+  id: string;
+  articleId: string;
+  feedId: string;
+  selectedText: string;
+  note?: string;
+  color: 'yellow' | 'green' | 'blue' | 'pink';
+  startOffset: number;
+  endOffset: number;
+  createdAt: Date;
+}
 
 export interface ValidationError {
   field: string;

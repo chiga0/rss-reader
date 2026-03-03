@@ -26,6 +26,7 @@
     "feeds": "Feeds",
     "favorites": "Favorites",
     "history": "History",
+    "annotations": "Annotations",
     "feed-management": "Manage Feeds",
     "settings": "Settings"
   }

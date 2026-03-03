@@ -105,12 +105,19 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
 
     // Extract first image from content or enclosure
     let imageUrl: string | undefined;
-    const enclosure = item.querySelector('enclosure[type^="image"]');
-    if (enclosure) {
-      imageUrl = enclosure.getAttribute('url') || undefined;
+    const imageEnclosure = item.querySelector('enclosure[type^="image"]');
+    if (imageEnclosure) {
+      imageUrl = imageEnclosure.getAttribute('url') || undefined;
     } else {
       imageUrl = extractFirstImage(content);
     }
+
+    // Extract audio/video enclosure for podcasts
+    const audioEnclosure = item.querySelector('enclosure[type^="audio"], enclosure[type^="video"]');
+    const enclosureUrl = audioEnclosure?.getAttribute('url') || undefined;
+    const enclosureType = audioEnclosure?.getAttribute('type') || undefined;
+    const enclosureLengthStr = audioEnclosure?.getAttribute('length');
+    const enclosureLength = enclosureLengthStr ? parseInt(enclosureLengthStr, 10) : undefined;
 
     return {
       title,
@@ -123,6 +130,9 @@ function parseRSS2(doc: Document, feedUrl: string): ParsedFeed {
       readAt: null,
       isFavorite: false,
       deletedAt: null,
+      enclosureUrl,
+      enclosureType,
+      enclosureLength,
     };
   });
 

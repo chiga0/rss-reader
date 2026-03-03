@@ -3,13 +3,17 @@
  * Shows article list with read/unread status, mark-as-read, and favorites
  */
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, RefreshCw } from 'lucide-react';
 import { useStore } from '@hooks/useStore';
+import { useKeyboardShortcuts } from '@hooks/useKeyboardShortcuts';
 import { formatRelativeTime } from '@utils/dateFormat';
 import { fetchAndStoreArticles, getArticlesForFeed } from '@services/feedService';
 import { storage } from '@lib/storage';
+import { KeyboardShortcutsHelp } from '@components/Common/KeyboardShortcutsHelp';
+import { ArticleCardSkeleton } from '@components/Common/Skeleton';
+import { discoverFeeds } from '@utils/feedDiscovery';
 import type { Feed, Article } from '@/models';
 
 interface FeedDetailLoaderData {
@@ -18,19 +22,49 @@ interface FeedDetailLoaderData {
   isOffline: boolean;
 }
 
+const FALLBACK_FEEDS = [
+  { url: 'https://feeds.feedburner.com/TechCrunch', title: 'TechCrunch' },
+  { url: 'https://www.theverge.com/rss/index.xml', title: 'The Verge' },
+  { url: 'https://hnrss.org/frontpage', title: 'Hacker News' },
+  { url: 'https://feeds.arstechnica.com/arstechnica/index', title: 'Ars Technica' },
+  { url: 'https://www.wired.com/feed/rss', title: 'Wired' },
+];
+
 export function FeedDetailPage() {
   const loaderData = useLoaderData() as FeedDetailLoaderData;
   const navigate = useNavigate();
-  const { toggleArticleFavorite } = useStore();
+  const { toggleArticleFavorite, subscribeFeed } = useStore();
   const [articles, setArticles] = useState<Article[]>(loaderData.articles);
   const [feed, setFeed] = useState<Feed>(loaderData.feed);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingArticles, setIsLoadingArticles] = useState(loaderData.articles.length === 0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showHelp, setShowHelp] = useState(false);
+  const [suggestedFeeds, setSuggestedFeeds] = useState<{ url: string; title: string }[]>([]);
+  const [subscribingUrl, setSubscribingUrl] = useState<string | null>(null);
 
   // Sync with loader data when navigating to a different feed
   useEffect(() => {
     setArticles(loaderData.articles);
     setFeed(loaderData.feed);
+    setIsLoadingArticles(loaderData.articles.length === 0);
   }, [loaderData]);
+
+  useEffect(() => {
+    if (!feed.link) {
+      setSuggestedFeeds(FALLBACK_FEEDS.slice(0, 5));
+      return;
+    }
+    discoverFeeds(feed.link).then((discovered) => {
+      setSuggestedFeeds(discovered.length > 0 ? discovered.slice(0, 5) : FALLBACK_FEEDS.slice(0, 5));
+    });
+  }, [feed.id, feed.link]);
+
+  const handleSubscribeSuggested = useCallback(async (url: string) => {
+    setSubscribingUrl(url);
+    await subscribeFeed(url);
+    setSubscribingUrl(null);
+  }, [subscribeFeed]);
 
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
@@ -68,8 +102,27 @@ export function FeedDetailPage() {
 
   const unreadCount = sortedArticles.filter(a => !a.readAt).length;
 
+  const selectedIndexRef = useRef(selectedIndex);
+  selectedIndexRef.current = selectedIndex;
+
+  useKeyboardShortcuts({
+    j: () => setSelectedIndex((i) => Math.min(i + 1, sortedArticles.length - 1)),
+    k: () => setSelectedIndex((i) => Math.max(i - 1, 0)),
+    o: () => {
+      const article = sortedArticles[selectedIndexRef.current];
+      if (article) navigate(`/articles/${article.id}`);
+    },
+    Enter: () => {
+      const article = sortedArticles[selectedIndexRef.current];
+      if (article) navigate(`/articles/${article.id}`);
+    },
+    '?': () => setShowHelp((v) => !v),
+    Escape: () => navigate('/feeds'),
+  });
+
   return (
     <div className="mx-auto max-w-4xl">
+      {showHelp && <KeyboardShortcutsHelp onClose={() => setShowHelp(false)} />}
       {/* Header */}
       <div className="mb-6">
         <button
@@ -124,7 +177,13 @@ export function FeedDetailPage() {
       )}
 
       {/* Article List */}
-      {sortedArticles.length === 0 ? (
+      {isLoadingArticles ? (
+        <div className="divide-y divide-border rounded-lg border border-border bg-card">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <ArticleCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : sortedArticles.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border py-16 text-center">
           <RefreshCw className="mb-4 h-12 w-12 text-muted-foreground" />
           <h2 className="mb-2 text-lg font-semibold text-foreground">No articles yet</h2>
@@ -134,12 +193,13 @@ export function FeedDetailPage() {
         </div>
       ) : (
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
-          {sortedArticles.map((article) => {
+          {sortedArticles.map((article, index) => {
             const isUnread = !article.readAt;
+            const isSelected = index === selectedIndex;
             return (
               <div
                 key={article.id}
-                className="flex items-start gap-3 p-4 transition-colors hover:bg-accent"
+                className={`flex items-start gap-3 p-4 transition-colors hover:bg-accent ${isSelected ? 'ring-2 ring-inset ring-primary' : ''}`}
               >
                 {/* Unread Indicator */}
                 <div className="mt-2 flex h-2 w-2 shrink-0 items-center justify-center">
@@ -196,6 +256,29 @@ export function FeedDetailPage() {
               </div>
             );
           })}
+        </div>
+      )}
+      {/* Suggested Feeds */}
+      {suggestedFeeds.length > 0 && (
+        <div className="mt-10">
+          <h2 className="mb-3 text-base font-semibold text-foreground">Suggested Feeds</h2>
+          <div className="divide-y divide-border rounded-lg border border-border bg-card">
+            {suggestedFeeds.map((sf) => (
+              <div key={sf.url} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-card-foreground">{sf.title}</p>
+                  <p className="truncate text-xs text-muted-foreground">{sf.url}</p>
+                </div>
+                <button
+                  onClick={() => handleSubscribeSuggested(sf.url)}
+                  disabled={subscribingUrl === sf.url}
+                  className="shrink-0 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {subscribingUrl === sf.url ? 'Subscribing…' : 'Subscribe'}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

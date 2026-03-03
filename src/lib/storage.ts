@@ -4,10 +4,11 @@
  */
 
 import { logger } from './logger';
-import type { Feed, Article, Category, UserSettings, SyncState } from '@models/Feed';
+import type { Feed, Article, Category, UserSettings, SyncState, Annotation } from '@models/Feed';
 
 const DB_NAME = 'rss-reader';
-const DB_VERSION = 1;
+// v1 → initial schema; v2 → added 'annotations' object store
+const DB_VERSION = 2;
 
 export interface StorageObjects {
   feeds: Feed;
@@ -15,6 +16,7 @@ export interface StorageObjects {
   categories: Category;
   settings: UserSettings;
   syncState: SyncState;
+  annotations: Annotation;
 }
 
 export interface StorageQuota {
@@ -79,6 +81,12 @@ class Storage {
         // Create syncState object store (singleton)
         if (!db.objectStoreNames.contains('syncState')) {
           db.createObjectStore('syncState', { keyPath: 'id' });
+        }
+
+        // Create annotations object store
+        if (!db.objectStoreNames.contains('annotations')) {
+          const annotationStore = db.createObjectStore('annotations', { keyPath: 'id' });
+          annotationStore.createIndex('articleId', 'articleId', { unique: false });
         }
 
         logger.info('Database upgraded to version ' + DB_VERSION);
