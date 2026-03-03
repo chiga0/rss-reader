@@ -24,7 +24,7 @@ const NEWSLETTER_ID_KEY = 'rss-reader-newsletter-id';
 function getOrCreateNewsletterId(): string {
   let id = localStorage.getItem(NEWSLETTER_ID_KEY);
   if (!id) {
-    id = Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
+    id = crypto.randomUUID().replace(/-/g, '');
     localStorage.setItem(NEWSLETTER_ID_KEY, id);
   }
   return id;
