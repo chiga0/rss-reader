@@ -33,6 +33,7 @@ export function ArticleActionBar({
 }: ArticleActionBarProps) {
   const { t } = useTranslation('article');
   const [copied, setCopied] = useState(false);
+  const [shareError, setShareError] = useState(false);
 
   const handleShare = async () => {
     const url = articleLink || window.location.href;
@@ -40,8 +41,12 @@ export function ArticleActionBar({
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
-      } catch {
-        // user cancelled or unsupported — fall through
+      } catch (err) {
+        // Only show error for non-cancellation failures
+        if ((err as Error)?.name !== 'AbortError') {
+          setShareError(true);
+          setTimeout(() => setShareError(false), 1500);
+        }
       }
     } else {
       try {
@@ -49,7 +54,8 @@ export function ArticleActionBar({
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       } catch {
-        // clipboard unavailable
+        setShareError(true);
+        setTimeout(() => setShareError(false), 1500);
       }
     }
   };
@@ -120,7 +126,7 @@ export function ArticleActionBar({
           title="Share article"
         >
           <Share2 className="h-5 w-5" />
-          <span>{copied ? 'Copied!' : 'Share'}</span>
+          <span>{copied ? 'Copied!' : shareError ? 'Failed' : 'Share'}</span>
         </button>
       </div>
     </div>

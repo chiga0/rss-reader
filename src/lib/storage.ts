@@ -7,6 +7,7 @@ import { logger } from './logger';
 import type { Feed, Article, Category, UserSettings, SyncState, Annotation } from '@models/Feed';
 
 const DB_NAME = 'rss-reader';
+// v1 → initial schema; v2 → added 'annotations' object store
 const DB_VERSION = 2;
 
 export interface StorageObjects {

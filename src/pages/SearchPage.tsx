@@ -10,6 +10,8 @@ import { ArrowLeft, Search as SearchIcon, Rss, FileText, SlidersHorizontal, X } 
 import { storage } from '@lib/storage';
 import type { Feed, Article } from '@models/Feed';
 
+const MS_PER_DAY = 86_400_000;
+
 type DateFilter = 'all' | 'today' | '7days' | '30days';
 type ReadStatus = 'all' | 'unread' | 'read';
 
@@ -103,9 +105,9 @@ export function SearchPage() {
         .filter((a) => {
           if (date === 'all') return true;
           const ms = now - new Date(a.publishedAt).getTime();
-          if (date === 'today') return ms < 86_400_000;
-          if (date === '7days') return ms < 7 * 86_400_000;
-          if (date === '30days') return ms < 30 * 86_400_000;
+          if (date === 'today') return ms < MS_PER_DAY;
+          if (date === '7days') return ms < 7 * MS_PER_DAY;
+          if (date === '30days') return ms < 30 * MS_PER_DAY;
           return true;
         })
         .filter((a) => {

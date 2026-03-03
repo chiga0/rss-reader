@@ -199,7 +199,7 @@ export function FeedDetailPage() {
             return (
               <div
                 key={article.id}
-                className={`flex items-start gap-3 p-4 transition-colors hover:bg-accent${isSelected ? ' ring-2 ring-inset ring-primary' : ''}`}
+                className={`flex items-start gap-3 p-4 transition-colors hover:bg-accent ${isSelected ? 'ring-2 ring-inset ring-primary' : ''}`}
               >
                 {/* Unread Indicator */}
                 <div className="mt-2 flex h-2 w-2 shrink-0 items-center justify-center">

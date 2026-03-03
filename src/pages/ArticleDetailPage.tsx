@@ -273,7 +273,7 @@ export function ArticleDetailPage() {
   const handleSaveAnnotation = useCallback(async () => {
     if (!pendingSelection) return;
     const annotation: Annotation = {
-      id: `ann-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: crypto.randomUUID(),
       articleId: article.id,
       feedId: feed.id,
       selectedText: pendingSelection.text,
