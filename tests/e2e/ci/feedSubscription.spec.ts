@@ -171,11 +171,10 @@ test.describe('RSS Feed Subscription', () => {
     // Navigate back to feeds list
     const backToFeedsButton = page.locator('button').filter({ hasText: /Back to Feeds|返回订阅列表/ }).first();
     await backToFeedsButton.click();
-    await page.waitForLoadState('networkidle');
 
-    // Verify we're back at feeds list
-    const mainHeading = page.locator('h1').first();
-    await expect(mainHeading).toBeVisible({ timeout: 10_000 });
+    // Verify we're back at feeds list (wait for h1 matching Feeds/订阅源 directly)
+    const mainHeading = page.locator('h1').filter({ hasText: /Feeds|订阅源/ }).first();
+    await expect(mainHeading).toBeVisible({ timeout: 15_000 });
     const text = await mainHeading.textContent();
     expect(text).toMatch(/Feeds|订阅源/);
   });

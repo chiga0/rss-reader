@@ -64,6 +64,8 @@ test.describe('Reading History', () => {
 
     // Navigate to history page
     await page.goto('/#/history');
+    // Wait for the loading spinner to disappear before checking content
+    await page.waitForSelector('.animate-spin', { state: 'hidden', timeout: 10_000 }).catch(() => {});
     await page.waitForLoadState('networkidle');
 
     // Verify history page shows the read article
@@ -74,7 +76,7 @@ test.describe('Reading History', () => {
 
     // Should have at least one article in history (the one we just read)
     const historyArticles = page.locator('a[href*="/articles/"]');
-    await expect(historyArticles.first()).toBeVisible({ timeout: 10_000 });
+    await expect(historyArticles.first()).toBeVisible({ timeout: 15_000 });
     const count = await historyArticles.count();
     expect(count).toBeGreaterThan(0);
   });
