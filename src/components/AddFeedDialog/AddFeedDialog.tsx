@@ -3,7 +3,7 @@
  * Modal dialog for adding new RSS feed subscriptions
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../hooks/useStore';
 import { useOfflineDetection } from '../../hooks/useOfflineDetection';
@@ -12,9 +12,10 @@ import { useToast } from '../../hooks/useToast';
 interface AddFeedDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  initialUrl?: string;
 }
 
-export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
+export function AddFeedDialog({ isOpen, onClose, initialUrl }: AddFeedDialogProps) {
   const { t } = useTranslation('feed');
   const [url, setUrl] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
@@ -29,6 +30,13 @@ export function AddFeedDialog({ isOpen, onClose }: AddFeedDialogProps) {
   useState(() => {
     loadCategories();
   });
+
+  // Populate URL field when dialog opens with an initial URL (e.g. from share target)
+  useEffect(() => {
+    if (isOpen && initialUrl) {
+      setUrl(initialUrl);
+    }
+  }, [isOpen, initialUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

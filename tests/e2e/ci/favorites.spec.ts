@@ -58,13 +58,21 @@ test.describe('Favorites Functionality', () => {
     await articleLink.click();
     await page.waitForLoadState('networkidle');
 
-    // Click the favorite button in the action bar
-    const favoriteButton = page.locator('button').filter({ hasText: /Favorite|收藏|favorite/ }).first();
+    // If the article is already favorited (from a previous test run), unfavorite it first
+    // so we can reliably test the favorite→favorited transition
+    const alreadyFavoritedBtn = page.locator('button').filter({ hasText: /^Favorited$|^已收藏$/ }).first();
+    if (await alreadyFavoritedBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await alreadyFavoritedBtn.click();
+      await expect(page.locator('button').filter({ hasText: /^Favorite$|^收藏$/ }).first()).toBeVisible({ timeout: 10_000 });
+    }
+
+    // Click the favorite button in the action bar (exact match to avoid matching "Favorited")
+    const favoriteButton = page.locator('button').filter({ hasText: /^Favorite$|^收藏$/ }).first();
     await expect(favoriteButton).toBeVisible({ timeout: 10_000 });
     await favoriteButton.click();
 
     // Wait for the favorited state to appear (text changes to "Favorited" / "已收藏")
-    await expect(page.locator('button').filter({ hasText: /Favorited|已收藏|favorited/ }).first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('button').filter({ hasText: /^Favorited$|^已收藏$/ }).first()).toBeVisible({ timeout: 10_000 });
 
     // Navigate to favorites page
     await page.goto('/#/favorites');
