@@ -32,7 +32,10 @@ describe('Storage', () => {
       };
 
       // Should NOT throw "Database not initialized"
-      await expect(freshStorage.put('feeds', feed)).resolves.not.toThrow();
+      await freshStorage.put('feeds', feed);
+      const stored = await freshStorage.get('feeds', 'auto-init-feed');
+      expect(stored).toBeDefined();
+      expect(stored?.title).toBe('Auto Init Feed');
     });
 
     it('should auto-initialize when calling getAll without explicit init', async () => {

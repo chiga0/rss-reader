@@ -204,9 +204,9 @@ class Storage {
     storeName: K,
     values: StorageObjects[K][],
   ): Promise<void> {
+    await this.ensureInit();
     if (values.length === 0) return;
 
-    await this.ensureInit();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
