@@ -38,7 +38,28 @@ export function FeedsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [articleCounts, setArticleCounts] = useState<Record<string, { total: number; unread: number; starred: number }>>({});
   const [isBottomBarVisible, setIsBottomBarVisible] = useState(true);
+  const [sharedFeedUrl, setSharedFeedUrl] = useState('');
   const lastScrollY = useRef(0);
+
+  // Handle PWA shortcuts (?action=add-feed) and Web Share Target (?url=... or ?text=...)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    const sharedUrl = params.get('url') || params.get('text');
+
+    if (action === 'add-feed') {
+      openAddFeedDialog();
+    } else if (sharedUrl) {
+      // If the param is plain text with an embedded URL, extract it
+      let feedUrl = sharedUrl;
+      if (!/^https?:\/\//i.test(feedUrl)) {
+        const match = sharedUrl.match(/https?:\/\/[^\s]+/i);
+        feedUrl = match ? match[0] : sharedUrl;
+      }
+      setSharedFeedUrl(feedUrl);
+      openAddFeedDialog();
+    }
+  }, [openAddFeedDialog]);
 
   // Load feeds, categories and start auto-refresh on mount
   useEffect(() => {
@@ -327,7 +348,11 @@ export function FeedsPage() {
       </div>
 
       {/* Add Feed Dialog */}
-      <AddFeedDialog isOpen={isAddFeedDialogOpen} onClose={closeAddFeedDialog} />
+      <AddFeedDialog
+        isOpen={isAddFeedDialogOpen}
+        onClose={() => { closeAddFeedDialog(); setSharedFeedUrl(''); }}
+        initialUrl={sharedFeedUrl}
+      />
     </div>
   );
 }
