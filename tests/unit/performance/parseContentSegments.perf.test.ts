@@ -50,6 +50,7 @@ describe('parseContentSegments performance', () => {
     const elapsed = performance.now() - start;
 
     expect(result.length).toBeGreaterThan(0);
+    expect(result[0].text).toBeTruthy();
     // Note: first DOMParser call in jsdom has cold-start overhead
     expect(elapsed).toBeLessThan(50);
   });
@@ -61,6 +62,7 @@ describe('parseContentSegments performance', () => {
     const elapsed = performance.now() - start;
 
     expect(result.length).toBeGreaterThan(50);
+    expect(result.every(s => s.html.length > 0)).toBe(true);
     expect(elapsed).toBeLessThan(50);
   });
 

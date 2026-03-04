@@ -37,6 +37,8 @@ describe('sanitizeHTML performance', () => {
     const elapsed = performance.now() - start;
 
     expect(result).toContain('paragraph');
+    expect(result).not.toContain('<script');
+    expect(result).not.toContain('onerror');
     expect(elapsed).toBeLessThan(200);
   });
 

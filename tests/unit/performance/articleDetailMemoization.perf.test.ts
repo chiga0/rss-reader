@@ -63,6 +63,7 @@ describe('ArticleDetailPage memoization chain performance', () => {
       expect(segments.length).toBeGreaterThan(0);
       expect(readingTime).toContain('min');
       expect(plainText.length).toBeGreaterThan(0);
+      expect(plainText).toContain('paragraph');
       expect(elapsed).toBeLessThan(200);
     });
 
