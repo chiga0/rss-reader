@@ -1,5 +1,5 @@
 /**
- * Unit tests for Storage bulk operations
+ * Unit tests for Storage operations and auto-initialization
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -12,6 +12,66 @@ describe('Storage', () => {
     await storage.init();
     await storage.clear('feeds');
     await storage.clear('articles');
+  });
+
+  describe('auto-initialization', () => {
+    it('should auto-initialize when calling put without explicit init', async () => {
+      // Create a fresh Storage instance to test auto-init
+      const { storage: freshStorage } = await import('@lib/storage');
+      const feed: Feed = {
+        id: 'auto-init-feed',
+        url: 'https://example.com/feed.xml',
+        title: 'Auto Init Feed',
+        description: 'Test',
+        lastFetchedAt: null,
+        refreshIntervalMinutes: 60,
+        paused: false,
+        errorCount: 0,
+        createdAt: new Date(),
+        deletedAt: null,
+      };
+
+      // Should NOT throw "Database not initialized"
+      await expect(freshStorage.put('feeds', feed)).resolves.not.toThrow();
+    });
+
+    it('should auto-initialize when calling getAll without explicit init', async () => {
+      const { storage: freshStorage } = await import('@lib/storage');
+      // Should NOT throw "Database not initialized"
+      const feeds = await freshStorage.getAll('feeds');
+      expect(Array.isArray(feeds)).toBe(true);
+    });
+
+    it('should auto-initialize when calling get without explicit init', async () => {
+      const { storage: freshStorage } = await import('@lib/storage');
+      // Should NOT throw "Database not initialized"
+      const result = await freshStorage.get('feeds', 'non-existent');
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle multiple concurrent init calls safely', async () => {
+      const { storage: freshStorage } = await import('@lib/storage');
+      // Call init multiple times concurrently
+      await expect(
+        Promise.all([
+          freshStorage.init(),
+          freshStorage.init(),
+          freshStorage.init(),
+        ])
+      ).resolves.not.toThrow();
+    });
+
+    it('should handle concurrent storage operations without explicit init', async () => {
+      const { storage: freshStorage } = await import('@lib/storage');
+      // Multiple operations in parallel should all auto-init safely
+      const results = await Promise.all([
+        freshStorage.getAll('feeds'),
+        freshStorage.getAll('articles'),
+        freshStorage.getAll('categories'),
+      ]);
+      expect(results).toHaveLength(3);
+      results.forEach(r => expect(Array.isArray(r)).toBe(true));
+    });
   });
 
   describe('bulkPut', () => {
