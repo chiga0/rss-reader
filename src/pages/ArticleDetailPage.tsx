@@ -73,6 +73,7 @@ export function ArticleDetailPage() {
   const [annotationNote, setAnnotationNote] = useState('');
   const [annotationColor, setAnnotationColor] = useState<Annotation['color']>('yellow');
   const contentRef = useRef<HTMLDivElement>(null);
+  // Keep a ref to the latest article for stable callbacks (avoids stale closures)
   const articleRef = useRef(article);
   articleRef.current = article;
   const [translations, setTranslations] = useState<Record<number, string>>({});
