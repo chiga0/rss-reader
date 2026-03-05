@@ -49,6 +49,13 @@ function parseContentSegments(html: string): { html: string; text: string }[] {
 /** Maximum milliseconds to wait for an AI operation before auto-aborting. */
 const AI_OPERATION_TIMEOUT_MS = 60_000;
 
+const ANNOTATION_COLOR_CLASS: Record<string, string> = {
+  yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
+  green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
+  blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
+  pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
+};
+
 export function ArticleDetailPage() {
   const { article: loaderArticle, feed } = useLoaderData() as ArticleDetailLoaderData;
   const navigate = useNavigate();
@@ -66,6 +73,9 @@ export function ArticleDetailPage() {
   const [annotationNote, setAnnotationNote] = useState('');
   const [annotationColor, setAnnotationColor] = useState<Annotation['color']>('yellow');
   const contentRef = useRef<HTMLDivElement>(null);
+  // Keep a ref to the latest article for stable callbacks (avoids stale closures)
+  const articleRef = useRef(article);
+  articleRef.current = article;
   const [translations, setTranslations] = useState<Record<number, string>>({});
   const [translatingIndex, setTranslatingIndex] = useState<number>(-1);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -132,22 +142,23 @@ export function ArticleDetailPage() {
 
   // Manual retry: fetch full content from original URL
   const handleLoadFullContent = useCallback(async () => {
-    if (!article.link) return;
+    if (!articleRef.current.link) return;
     setIsLoadingFullContent(true);
     setFullContentError(null);
     try {
-      const updated = await fetchAndCacheFullContent(article);
+      const updated = await fetchAndCacheFullContent(articleRef.current);
       setArticle(updated);
     } catch {
       setFullContentError('Failed to load full article content');
     } finally {
       setIsLoadingFullContent(false);
     }
-  }, [article]);
+  }, []);
 
-  const sanitizedContent = article.content
-    ? sanitizeHTML(article.content)
-    : article.summary || '';
+  const sanitizedContent = useMemo(
+    () => (article.content ? sanitizeHTML(article.content) : article.summary || ''),
+    [article.content, article.summary],
+  );
 
   const segments = useMemo(() => parseContentSegments(sanitizedContent), [sanitizedContent]);
 
@@ -294,19 +305,14 @@ export function ArticleDetailPage() {
     setAnnotations((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
-  const annotationColorClass: Record<Annotation['color'], string> = {
-    yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
-    green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
-    blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
-    pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
-  };
+  const handleBack = useCallback(() => navigate(-1), [navigate]);
 
   return (
     <div className="mx-auto max-w-3xl overflow-x-hidden pb-20">
       {/* Navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -453,7 +459,7 @@ export function ArticleDetailPage() {
           <h3 className="mb-3 text-sm font-semibold text-foreground">Highlights &amp; Annotations</h3>
           <ul className="space-y-2">
             {annotations.map((ann) => (
-              <li key={ann.id} className={`rounded-md border px-3 py-2 text-sm ${annotationColorClass[ann.color]}`}>
+              <li key={ann.id} className={`rounded-md border px-3 py-2 text-sm ${ANNOTATION_COLOR_CLASS[ann.color]}`}>
                 <p className="font-medium">&ldquo;{ann.selectedText}&rdquo;</p>
                 {ann.note && <p className="mt-0.5 text-xs text-muted-foreground">{ann.note}</p>}
                 <button
