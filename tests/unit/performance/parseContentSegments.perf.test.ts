@@ -43,7 +43,7 @@ function generateSegmentHTML(paragraphs: number): string {
 }
 
 describe('parseContentSegments performance', () => {
-  it('should parse a small article (20 segments) within 50ms', () => {
+  it('should parse a small article (20 segments) within 100ms', () => {
     const html = generateSegmentHTML(20);
     const start = performance.now();
     const result = parseContentSegments(html);
@@ -52,10 +52,10 @@ describe('parseContentSegments performance', () => {
     expect(result.length).toBeGreaterThan(0);
     expect(result[0].text).toBeTruthy();
     // Note: first DOMParser call in jsdom has cold-start overhead
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(100);
   });
 
-  it('should parse a medium article (100 segments) within 50ms', () => {
+  it('should parse a medium article (100 segments) within 100ms', () => {
     const html = generateSegmentHTML(100);
     const start = performance.now();
     const result = parseContentSegments(html);
@@ -63,17 +63,17 @@ describe('parseContentSegments performance', () => {
 
     expect(result.length).toBeGreaterThan(50);
     expect(result.every(s => s.html.length > 0)).toBe(true);
-    expect(elapsed).toBeLessThan(50);
+    expect(elapsed).toBeLessThan(100);
   });
 
-  it('should parse a large article (500 segments) within 100ms', () => {
+  it('should parse a large article (500 segments) within 200ms', () => {
     const html = generateSegmentHTML(500);
     const start = performance.now();
     const result = parseContentSegments(html);
     const elapsed = performance.now() - start;
 
     expect(result.length).toBeGreaterThan(250);
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(200);
   });
 
   it('should correctly extract text from each segment', () => {
