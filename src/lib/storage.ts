@@ -28,16 +28,21 @@ export interface StorageQuota {
 
 class Storage {
   private db: IDBDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
   /**
-   * Initialize IndexedDB
+   * Initialize IndexedDB (idempotent — safe to call multiple times)
    */
   async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    if (this.db) return;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = new Promise<void>((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
         logger.error('IndexedDB initialization failed');
+        this.initPromise = null;
         reject(request.error);
       };
 
@@ -92,6 +97,17 @@ class Storage {
         logger.info('Database upgraded to version ' + DB_VERSION);
       };
     });
+
+    return this.initPromise;
+  }
+
+  /**
+   * Ensure database is initialized before performing operations
+   */
+  private async ensureInit(): Promise<void> {
+    if (!this.db) {
+      await this.init();
+    }
   }
 
   /**
@@ -101,13 +117,9 @@ class Storage {
     storeName: K,
     value: StorageObjects[K],
   ): Promise<IDBValidKey> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
       const request = store.put(value);
 
@@ -123,13 +135,9 @@ class Storage {
     storeName: K,
     key: IDBValidKey,
   ): Promise<StorageObjects[K] | undefined> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readonly');
+      const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.get(key);
 
@@ -144,13 +152,9 @@ class Storage {
   async getAll<K extends keyof StorageObjects>(
     storeName: K,
   ): Promise<StorageObjects[K][]> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readonly');
+      const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const request = store.getAll();
 
@@ -166,13 +170,9 @@ class Storage {
     storeName: K,
     key: IDBValidKey,
   ): Promise<void> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
       const request = store.delete(key);
 
@@ -185,13 +185,9 @@ class Storage {
    * Clear all objects from a store
    */
   async clear<K extends keyof StorageObjects>(storeName: K): Promise<void> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readwrite');
+      const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
       const request = store.clear();
 
@@ -201,8 +197,6 @@ class Storage {
   }
 
   /**
-
-  /**
    * Bulk write operations for OPML import
    * More efficient than multiple put() calls
    */
@@ -210,13 +204,11 @@ class Storage {
     storeName: K,
     values: StorageObjects[K][],
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
+    await this.ensureInit();
+    if (values.length === 0) return;
 
-      const transaction = this.db.transaction([storeName], 'readwrite');
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
       
       let completed = 0;
@@ -244,11 +236,6 @@ class Storage {
       });
 
       transaction.onerror = () => reject(transaction.error);
-      
-      // Handle empty array
-      if (values.length === 0) {
-        resolve();
-      }
     });
   }
 
@@ -306,13 +293,9 @@ class Storage {
     indexName: string,
     value: IDBValidKey,
   ): Promise<StorageObjects[K][]> {
+    await this.ensureInit();
     return new Promise((resolve, reject) => {
-      if (!this.db) {
-        reject(new Error('Database not initialized'));
-        return;
-      }
-
-      const transaction = this.db.transaction([storeName], 'readonly');
+      const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const index = store.index(indexName);
       const request = index.getAll(value);
