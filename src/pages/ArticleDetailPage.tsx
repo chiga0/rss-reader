@@ -330,6 +330,13 @@ export function ArticleDetailPage() {
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
+  const annotationColorClass: Record<Annotation['color'], string> = {
+    yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
+    green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
+    blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
+    pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
+  };
+
   // Image lightbox: collect images from content and handle clicks
   const handleContentClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
