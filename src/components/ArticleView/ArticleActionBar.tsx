@@ -2,7 +2,7 @@
  * ArticleActionBar - Fixed bottom banner with Favorite, Translate, AI Summary, Annotate, and Share buttons.
  */
 
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart, Languages, Sparkles, Loader2, Highlighter, Share2 } from 'lucide-react';
 
@@ -19,7 +19,7 @@ interface ArticleActionBarProps {
   onToggleAnnotate: () => void;
 }
 
-export function ArticleActionBar({
+export const ArticleActionBar = memo(function ArticleActionBar({
   isFavorite,
   isTranslating,
   isSummarizing,
@@ -35,7 +35,7 @@ export function ArticleActionBar({
   const [copied, setCopied] = useState(false);
   const [shareError, setShareError] = useState(false);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     const url = articleLink || window.location.href;
     const title = articleTitle || document.title;
     if (navigator.share) {
@@ -58,7 +58,7 @@ export function ArticleActionBar({
         setTimeout(() => setShareError(false), 1500);
       }
     }
-  };
+  }, [articleLink, articleTitle]);
 
   return (
     <div
@@ -131,4 +131,4 @@ export function ArticleActionBar({
       </div>
     </div>
   );
-}
+});
