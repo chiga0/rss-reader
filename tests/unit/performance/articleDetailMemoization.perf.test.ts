@@ -154,7 +154,7 @@ describe('ArticleDetailPage memoization chain performance', () => {
       const time = calculateReadingTime(rawContent);
       const elapsed = performance.now() - start;
 
-      expect(time).toBeGreaterThan(1);
+      expect(time.minutes).toBeGreaterThan(1);
       expect(elapsed).toBeLessThan(10);
     });
 

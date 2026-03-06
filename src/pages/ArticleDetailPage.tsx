@@ -17,6 +17,10 @@ import { fetchAndCacheFullContent } from '@services/articleContentService';
 import { translateText, summarizeText } from '@services/aiService';
 import { ArticleActionBar } from '@components/ArticleView/ArticleActionBar';
 import { PodcastPlayer } from '@components/ArticleView/PodcastPlayer';
+import { ReadingProgressBar } from '@components/ArticleView/ReadingProgressBar';
+import { CodeBlockEnhancer } from '@components/ArticleView/CodeBlockEnhancer';
+import { ImageLightbox } from '@components/ArticleView/ImageLightbox';
+import { useImageLightbox } from '@hooks/useImageLightbox';
 import type { Feed, Article } from '@/models';
 
 interface ArticleDetailLoaderData {
@@ -49,13 +53,6 @@ function parseContentSegments(html: string): { html: string; text: string }[] {
 /** Maximum milliseconds to wait for an AI operation before auto-aborting. */
 const AI_OPERATION_TIMEOUT_MS = 60_000;
 
-const ANNOTATION_COLOR_CLASS: Record<string, string> = {
-  yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
-  green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
-  blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
-  pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
-};
-
 export function ArticleDetailPage() {
   const { article: loaderArticle, feed } = useLoaderData() as ArticleDetailLoaderData;
   const navigate = useNavigate();
@@ -68,7 +65,9 @@ export function ArticleDetailPage() {
   const [isAnnotating, setIsAnnotating] = useState(false);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [pendingSelection, setPendingSelection] = useState<{
-    text: string; start: number; end: number;
+    text: string;
+    start: number;
+    end: number;
   } | null>(null);
   const [annotationNote, setAnnotationNote] = useState('');
   const [annotationColor, setAnnotationColor] = useState<Annotation['color']>('yellow');
@@ -85,6 +84,7 @@ export function ArticleDetailPage() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const summaryRef = useRef<HTMLDivElement>(null);
+  const lightbox = useImageLightbox();
 
   // Cancel any running AI operation when the article changes or the page unmounts
   useEffect(() => {
@@ -96,7 +96,8 @@ export function ArticleDetailPage() {
 
   // Load existing annotations for this article
   useEffect(() => {
-    storage.getAllByIndex('annotations', 'articleId', loaderArticle.id)
+    storage
+      .getAllByIndex('annotations', 'articleId', loaderArticle.id)
       .then(setAnnotations)
       .catch(() => {});
   }, [loaderArticle.id]);
@@ -131,7 +132,9 @@ export function ArticleDetailPage() {
     }
 
     loadFullContent();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [loaderArticle]);
 
   const handleFavoriteToggle = useCallback(async () => {
@@ -162,14 +165,20 @@ export function ArticleDetailPage() {
 
   const segments = useMemo(() => parseContentSegments(sanitizedContent), [sanitizedContent]);
 
-  const readingTime = useMemo(
-    () => formatReadingTime(calculateReadingTime(sanitizedContent)),
-    [sanitizedContent],
+  const readingTimeResult = useMemo(
+    () => calculateReadingTime(sanitizedContent),
+    [sanitizedContent]
   );
 
+  const readingTime = formatReadingTime(readingTimeResult.minutes);
+
   const plainText = useMemo(
-    () => segments.map((s) => s.text).filter(Boolean).join('\n\n'),
-    [segments],
+    () =>
+      segments
+        .map((s) => s.text)
+        .filter(Boolean)
+        .join('\n\n'),
+    [segments]
   );
 
   const handleTranslate = useCallback(async () => {
@@ -199,9 +208,14 @@ export function ArticleDetailPage() {
         if (!text || text.length < 2) continue;
         setTranslatingIndex(i);
         // Stream translation chunk-by-chunk for real-time feedback
-        await translateText(text, '中文', (chunk) => {
-          setTranslations((prev) => ({ ...prev, [i]: (prev[i] || '') + chunk }));
-        }, controller.signal);
+        await translateText(
+          text,
+          '中文',
+          (chunk) => {
+            setTranslations((prev) => ({ ...prev, [i]: (prev[i] || '') + chunk }));
+          },
+          controller.signal
+        );
       }
     } catch (err) {
       if ((err as Error)?.name !== 'AbortError') {
@@ -237,9 +251,13 @@ export function ArticleDetailPage() {
 
     try {
       // Stream summary tokens for real-time display
-      await summarizeText(plainText, (chunk) => {
-        setSummary((prev) => (prev || '') + chunk);
-      }, controller.signal);
+      await summarizeText(
+        plainText,
+        (chunk) => {
+          setSummary((prev) => (prev || '') + chunk);
+        },
+        controller.signal
+      );
       // Defer scroll slightly to allow React to paint the summary before scrolling
       setTimeout(() => {
         summaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -253,8 +271,6 @@ export function ArticleDetailPage() {
       setIsSummarizing(false);
     }
   }, [isSummarizing, summary, plainText]);
-
-
 
   const handleToggleAnnotate = useCallback(() => {
     setIsAnnotating((v) => !v);
@@ -307,8 +323,45 @@ export function ArticleDetailPage() {
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
 
+  const annotationColorClass: Record<Annotation['color'], string> = {
+    yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
+    green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
+    blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
+    pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
+  };
+
+  // Image lightbox: collect images from content and handle clicks
+  const handleContentClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName !== 'IMG') return;
+
+      const container = contentRef.current;
+      if (!container) return;
+
+      const imgs = Array.from(container.querySelectorAll('img'));
+      // Filter out small icons and data URIs
+      const validImages = imgs.filter((img) => {
+        if (!img.src || img.src.startsWith('data:')) return false;
+        if (img.naturalWidth > 0 && img.naturalWidth < 50) return false;
+        if (img.naturalHeight > 0 && img.naturalHeight < 50) return false;
+        return true;
+      });
+
+      const srcs = validImages.map((img) => img.src);
+      const clickedIndex = validImages.indexOf(target as HTMLImageElement);
+      if (clickedIndex >= 0 && srcs.length > 0) {
+        lightbox.open(srcs, clickedIndex);
+      }
+    },
+    [lightbox]
+  );
+
   return (
     <div className="mx-auto max-w-3xl overflow-x-hidden pb-20">
+      {/* Reading Progress Bar */}
+      <ReadingProgressBar />
+
       {/* Navigation */}
       <div className="mb-6 flex items-center justify-between">
         <button
@@ -332,9 +385,7 @@ export function ArticleDetailPage() {
           {article.author && <span>By {article.author}</span>}
           <span>{formatRelativeTime(new Date(article.publishedAt))}</span>
           <span>{readingTime}</span>
-          {article.readAt && (
-            <span className="inline-flex items-center gap-1 text-xs">✓ Read</span>
-          )}
+          {article.readAt && <span className="inline-flex items-center gap-1 text-xs">✓ Read</span>}
         </div>
       </header>
 
@@ -396,7 +447,11 @@ export function ArticleDetailPage() {
       {pendingSelection && (
         <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-md">
           <p className="mb-2 text-sm font-medium text-foreground">
-            Selected: <span className="italic text-muted-foreground">&ldquo;{pendingSelection.text.slice(0, 80)}{pendingSelection.text.length > 80 ? '…' : ''}&rdquo;</span>
+            Selected:{' '}
+            <span className="italic text-muted-foreground">
+              &ldquo;{pendingSelection.text.slice(0, 80)}
+              {pendingSelection.text.length > 80 ? '…' : ''}&rdquo;
+            </span>
           </p>
           <div className="mb-3 flex gap-2">
             {(['yellow', 'green', 'blue', 'pink'] as const).map((c) => (
@@ -406,9 +461,13 @@ export function ArticleDetailPage() {
                 className={`h-6 w-6 rounded-full border-2 transition-transform ${
                   annotationColor === c ? 'scale-125 border-foreground' : 'border-transparent'
                 } ${
-                  c === 'yellow' ? 'bg-yellow-400' :
-                  c === 'green' ? 'bg-green-400' :
-                  c === 'blue' ? 'bg-blue-400' : 'bg-pink-400'
+                  c === 'yellow'
+                    ? 'bg-yellow-400'
+                    : c === 'green'
+                      ? 'bg-green-400'
+                      : c === 'blue'
+                        ? 'bg-blue-400'
+                        : 'bg-pink-400'
                 }`}
                 aria-label={c}
               />
@@ -429,7 +488,10 @@ export function ArticleDetailPage() {
               Save
             </button>
             <button
-              onClick={() => { setPendingSelection(null); window.getSelection()?.removeAllRanges(); }}
+              onClick={() => {
+                setPendingSelection(null);
+                window.getSelection()?.removeAllRanges();
+              }}
               className="rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               Cancel
@@ -439,7 +501,12 @@ export function ArticleDetailPage() {
       )}
 
       {/* Article Content (rendered as segments to support inline translations) */}
-      <div ref={contentRef} className="article-content" onMouseUp={handleContentMouseUp}>
+      <div
+        ref={contentRef}
+        className={`article-content${readingTimeResult.isCjkDominant ? ' article-content-cjk' : ''}`}
+        onMouseUp={handleContentMouseUp}
+        onClick={handleContentClick}
+      >
         {segments.map((segment, index) => (
           <div key={index}>
             <div dangerouslySetInnerHTML={{ __html: segment.html }} />
@@ -453,13 +520,31 @@ export function ArticleDetailPage() {
         ))}
       </div>
 
+      {/* Code block copy buttons */}
+      <CodeBlockEnhancer containerRef={contentRef} deps={[sanitizedContent]} />
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        isOpen={lightbox.isOpen}
+        images={lightbox.images}
+        currentIndex={lightbox.currentIndex}
+        onClose={lightbox.close}
+        onNext={lightbox.next}
+        onPrevious={lightbox.previous}
+      />
+
       {/* Saved Annotations */}
       {annotations.length > 0 && (
         <div className="mt-8 rounded-lg border border-border bg-card p-4">
-          <h3 className="mb-3 text-sm font-semibold text-foreground">Highlights &amp; Annotations</h3>
+          <h3 className="mb-3 text-sm font-semibold text-foreground">
+            Highlights &amp; Annotations
+          </h3>
           <ul className="space-y-2">
             {annotations.map((ann) => (
-              <li key={ann.id} className={`rounded-md border px-3 py-2 text-sm ${ANNOTATION_COLOR_CLASS[ann.color]}`}>
+              <li
+                key={ann.id}
+                className={`rounded-md border px-3 py-2 text-sm ${annotationColorClass[ann.color]}`}
+              >
                 <p className="font-medium">&ldquo;{ann.selectedText}&rdquo;</p>
                 {ann.note && <p className="mt-0.5 text-xs text-muted-foreground">{ann.note}</p>}
                 <button
