@@ -53,13 +53,6 @@ function parseContentSegments(html: string): { html: string; text: string }[] {
 /** Maximum milliseconds to wait for an AI operation before auto-aborting. */
 const AI_OPERATION_TIMEOUT_MS = 60_000;
 
-const ANNOTATION_COLOR_CLASS: Record<string, string> = {
-  yellow: 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700',
-  green: 'bg-green-100 border-green-300 dark:bg-green-900/30 dark:border-green-700',
-  blue: 'bg-blue-100 border-blue-300 dark:bg-blue-900/30 dark:border-blue-700',
-  pink: 'bg-pink-100 border-pink-300 dark:bg-pink-900/30 dark:border-pink-700',
-};
-
 export function ArticleDetailPage() {
   const { article: loaderArticle, feed } = useLoaderData() as ArticleDetailLoaderData;
   const navigate = useNavigate();

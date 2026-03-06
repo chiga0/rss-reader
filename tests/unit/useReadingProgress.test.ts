@@ -9,14 +9,11 @@ import { useReadingProgress } from '@hooks/useReadingProgress';
 describe('useReadingProgress', () => {
   let addEventSpy: ReturnType<typeof vi.spyOn>;
   let removeEventSpy: ReturnType<typeof vi.spyOn>;
-  let rafCallback: FrameRequestCallback | null = null;
-
   beforeEach(() => {
     addEventSpy = vi.spyOn(window, 'addEventListener');
     removeEventSpy = vi.spyOn(window, 'removeEventListener');
-    // Mock requestAnimationFrame to capture and run callback synchronously
+    // Mock requestAnimationFrame to run callback synchronously
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-      rafCallback = cb;
       cb(0);
       return 1;
     });
@@ -24,7 +21,6 @@ describe('useReadingProgress', () => {
   });
 
   afterEach(() => {
-    rafCallback = null;
     vi.restoreAllMocks();
   });
 
