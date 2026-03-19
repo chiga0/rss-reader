@@ -10,10 +10,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![PWA](https://img.shields.io/badge/PWA-Enabled-success)](https://web.dev/progressive-web-apps/)
+[![CI](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml)
 
 [Live Demo](https://reader.chigao.site/) · [Features](#-features) · [Quick Start](#-quick-start) · [Docs](#-documentation)
 
-[![CI](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml)
 
 </div>
 
