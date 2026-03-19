@@ -13,6 +13,8 @@
 
 [Live Demo](https://reader.chigao.site/) · [Features](#-features) · [Quick Start](#-quick-start) · [Docs](#-documentation)
 
+[![CI](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml)
+
 </div>
 
 ---
