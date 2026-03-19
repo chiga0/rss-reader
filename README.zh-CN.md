@@ -10,6 +10,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
 [![PWA](https://img.shields.io/badge/PWA-离线可用-success)](https://web.dev/progressive-web-apps/)
+[![CI](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/chiga0/rss-reader/actions/workflows/ci.yml)
 
 [在线演示](https://reader.chigao.site/) · [功能特性](#-功能特性) · [快速开始](#-快速开始) · [文档](#-文档)
 
